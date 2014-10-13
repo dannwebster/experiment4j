@@ -11,6 +11,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Created by dannwebster on 10/12/14.
@@ -24,12 +25,12 @@ public class Experiment<T, M> implements Callable<Result<T>> {
     private final String name;
     private final Callable<T> control;
     private final Callable<T> candidate;
-    private final Callable<Boolean> selector;
+    private final Supplier<Boolean> selector;
 
     private final Comparator<M> comparator;
     private final Function<Optional<T>, M> cleaner;
 
-    private final Callable<TrialType> whichIsFirst;
+    private final Supplier<TrialType> whichIsFirst;
     private final ExecutorService executorService;
     private final Publisher<T> publisher;
 
@@ -37,10 +38,10 @@ public class Experiment<T, M> implements Callable<Result<T>> {
             String name, 
             Callable<T> control, 
             Callable<T> candidate, 
-            Callable<Boolean> selector,
+            Supplier<Boolean> selector,
             Comparator<M> comparator, 
             Function<Optional<T>, M> cleaner,
-            Callable<TrialType> whichIsFirst,
+            Supplier<TrialType> whichIsFirst,
             ExecutorService executorService,
             Publisher<T> publisher) {
 
@@ -70,7 +71,7 @@ public class Experiment<T, M> implements Callable<Result<T>> {
     public final T perform() {
         T value;
         try {
-            if (selector.call()) {
+            if (selector.get()) {
                 Result<T> result = call();
                 TrialResult<T> controlResult = result.getControlResult();
                 if (controlResult.getException().isPresent()) {
@@ -95,7 +96,7 @@ public class Experiment<T, M> implements Callable<Result<T>> {
         Future<T> candidateFuture;
 
         Instant timestamp = Instant.now();
-        if (CONTROL.equals(whichIsFirst.call())) {
+        if (CONTROL.equals(whichIsFirst.get())) {
             first = CONTROL;
             controlFuture = executorService.submit(control);
             candidateFuture = executorService.submit(candidate);

@@ -1,34 +1,30 @@
 package com.crypticmission.exp;
 
-import static com.crypticmission.exp.ExperimentBuilder.experiment;
-import java.util.Comparator;
+import static com.crypticmission.exp.Science.perform;
 import java.util.Optional;
 import org.junit.Test;
+import static com.crypticmission.exp.Science.science;
+import static com.crypticmission.exp.Selectors.percentage;
 
 /**
  * Created by dannwebster on 10/12/14.
  */
 
 public class ExperimentTest {
+
     @Test
-    public void testSyntax() throws Exception {
-        Comparator<Integer> c = (Integer a, Integer b) -> a - b;
-        Experiment<String, Integer> e = experiment()
-                .named("foo")
-                .control(() -> "Foo")
-                .candidate(() -> "Bar")
-                .selector()
-                .comparator(c)
-                .cleaner((Optional<String> s) -> (s.isPresent()) ? s.get().length() : 0)
-                .publisher(
-                    publisher()
-                        .measurer()
-                        .durationNamePattern()
-                        .durationNamePattern()
-                 )
-                .build();
-                e.perform();
-        ////////
-        Experiment e = experiment("foo", (ExperimentBuilder b) -> b);
+    public void testBindSyntax() throws Exception {
+        //String s = Science.<String, Integer>
+        String s = perform(
+            science("foo", (Science<String, Integer> f) -> {
+                f.selector(percentage(30));
+                f.cleaner((Optional<String> o) -> o.isPresent() ? o.get().length() : 0);
+                f.comparator((Integer a, Integer b) -> a - b);
+            })
+            .expermient((Science<String, Integer> f) -> {
+                f.candidate(() -> "foo");
+                f.control(() -> "bar");
+            })
+        );
     }
 }
