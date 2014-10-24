@@ -20,10 +20,16 @@
         <metrics.version>3.0.2</metrics.version>
         <junit.version>4.11</junit.version>
         <mockito.version>1.9.5</mockito.version>
+        <javaslang.version>1.0.0</javaslang.version>
     </properties>
 
     <dependencies>
         <dependency>
+            <groupId>com.javaslang</groupId>
+            <artifactId>javaslang</artifactId>
+            <version>${javaslang.version}</version>
+        </dependency>
+         <dependency>
             <groupId>com.codahale.metrics</groupId>
             <artifactId>metrics-core</artifactId>
             <version>${metrics.version}</version>

@@ -3,6 +3,8 @@ package com.crypticmission.exp;
 import static com.crypticmission.exp.Experiment.TrialType.CANDIDATE;
 import static com.crypticmission.exp.Experiment.TrialType.CONTROL;
 import com.crypticmission.exp.util.Assert;
+import com.crypticmission.exp.util.Optionalz;
+import com.crypticmission.exp.util.Tryz;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Comparator;
@@ -12,6 +14,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import javaslang.exception.Try;
 
 /**
  * Created by dannwebster on 10/12/14.
@@ -73,12 +76,8 @@ public class Experiment<T, M> implements Callable<Result<T>> {
         try {
             if (selector.get()) {
                 Result<T> result = call();
-                TrialResult<T> controlResult = result.getControlResult();
-                if (controlResult.getException().isPresent()) {
-                    throw controlResult.getException().get();
-                }
-                Optional<T> optValue = result.getControlResult().getValue();
-                value =  (optValue.isPresent()) ? optValue.get() : null;
+                Try<T> tryResult = result.getControlResult().getTryResult();
+                value =  tryResult.get();
             } else {
                 return control.call();
             }
@@ -108,7 +107,7 @@ public class Experiment<T, M> implements Callable<Result<T>> {
 
         TrialResult<T> candidateResult = observe(CANDIDATE, candidateFuture);
         TrialResult<T> controlResult = observe(CONTROL, controlFuture);
-        Result<T> result = new Result<T>(name, first, timestamp, candidateResult, controlResult);
+        Result<T> result = new Result<>(name, first, timestamp, candidateResult, controlResult);
 
         if (publisher != null) {
             boolean outputMatches = determineMatch(result);
@@ -118,10 +117,10 @@ public class Experiment<T, M> implements Callable<Result<T>> {
     }
 
     public boolean determineMatch(Result<T> result) {
-        Optional<T> optCandidate = result.getCandidateResult().getValue();
+        Optional<T> optCandidate = Tryz.optional(result.getCandidateResult().getTryResult());
         Optional<M> cleanCandidate =  Optional.ofNullable(cleaner.apply(optCandidate));
 
-        Optional<T> optControl = result.getControlResult().getValue();
+        Optional<T> optControl = Tryz.optional(result.getCandidateResult().getTryResult());
         Optional<M> cleanControl =  Optional.ofNullable(cleaner.apply(optControl));
 
         // take care of null-handling so comparators can be written more easily
