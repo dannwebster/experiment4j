@@ -80,7 +80,7 @@ public class Experiment<T, M> implements Callable<Result<T>> {
                 Optional<T> optValue = result.getControlResult().getValue();
                 value =  (optValue.isPresent()) ? optValue.get() : null;
             } else {
-                return candidate.call();
+                return control.call();
             }
         } catch (Exception e) {
             throw (e instanceof RuntimeException) ? 
