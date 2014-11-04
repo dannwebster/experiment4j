@@ -41,14 +41,14 @@ There are only a few main domain concepts for this framework:
 
 DSL Syntax
 ----------
-The DSL Syntax is under construction, but an example of the current iteration is here: https://github.com/dannwebster/experiment4j/blob/master/src/test/java/com/crypticmission/exp/ExperimentTest.java
+The DSL Syntax is under construction, but an example of the current iteration is here: [DSL Test](https://github.com/dannwebster/experiment4j/blob/master/src/test/java/com/crypticmission/exp/ExperimentTest.java).
 The main issue with this is that the distinction between building an instance of _Science_ (the factory that holds the 
 baseline _Experiment_ configuration), and the _Experiment_ itself.
 
-The goal of the DSL is to mimic the Ruby syntax of the Science framework (https://github.com/github/dat-science),
+The goal of the DSL is to mimic the Ruby syntax of the [Science framework](https://github.com/github/dat-science),
 but without causing any unexpected side effects.
 
 The current DSL has the unexpected side effect of redefining both the Science and the Experiment instances each time it is
 executed. Any final version of the framework should allow you to define both the Science and the Experiment in line, but
-only construct the instance once. (see Issue #1 to track this)
+only construct the instance once. (see [Issue #1](https://github.com/dannwebster/experiment4j/issues/1) to track this)
 
