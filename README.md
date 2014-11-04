@@ -8,18 +8,19 @@ A Java port of Github's [Science framework](https://github.com/github/dat-scienc
 Motivation
 ----------
 I read ["Move Fast, Break Nothing"](http://zachholman.com/talk/move-fast-break-nothing/) by Zack Holman, and I 
-really wanted the capabilities of the Github's [Science framework](https://github.com/github/dat-science) in Java 8.
+really wanted the capabilities of Github's [Science framework](https://github.com/github/dat-science) in Java 8.
 
 I work with a large production system where we are actively trying to replace a bunch of legacy code with
-newer implementations, to improve performance while maintaining backwards compatibility. With that objective, 
-so the capability to quickly perform these kinds of experiments with a DSL is vital.
+newer implementations. Are core goals are to: 
+* Improve performance
+* Maintain backwards compatibility
+
+With those objectives, Science is exactly the thing we need. The ability to allow developers to easily and consistently express the capability to quickly perform these kinds of experiments with a DSL is vital.
 
 Methodology
 -----------
 I based this implementation on reading the Science documentation, and building out the capabilities from the
-functionality expressed there, rather than porting the implementation. No doubt, greater insight could be gained from 
-spending more time on grokking the Ruby implementation, but it was faster for me to work directly from the docs, and build
-what I needed from my own understanding of the pattern.
+functionality expressed there. In other words, I did not focus on porting the implementation. No doubt, greater insight could be gained from spending more time on grokking the Ruby implementation, but it was faster for me to work directly from the docs, and build what I needed from my own understanding of the pattern.
 
 Dependencies
 ------------
