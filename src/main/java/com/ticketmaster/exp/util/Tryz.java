@@ -1,9 +1,8 @@
-package com.crypticmission.exp.util;
+package com.ticketmaster.exp.util;
 
 import java.util.Optional;
-import javaslang.exception.Cause;
+
 import javaslang.exception.Try;
-import javaslang.exception.Try.CheckedSupplier;
 
 /**
  *

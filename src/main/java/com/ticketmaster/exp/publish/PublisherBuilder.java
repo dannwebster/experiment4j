@@ -1,34 +1,33 @@
-package com.crypticmission.exp.publish;
+package com.ticketmaster.exp.publish;
 
-import com.crypticmission.exp.Experiment;
-import com.crypticmission.exp.Publisher;
-import java.util.function.Function;
+import com.ticketmaster.exp.Experiment;
+import com.ticketmaster.exp.Publisher;
 
 /**
  *
  * @author dannwebster
  */
-public class PublisherBuilder<T> {
+public class PublisherBuilder<T, K> {
     private Measurer measurer;
-    private MatchCountNamer matchCountNamer;
-    private DurationNamer durationNamer;
+    private MatchCountNamer<K> matchCountNamer;
+    private DurationNamer<K> durationNamer;
 
     private PublisherBuilder() {}
 
-    public static <T> PublisherBuilder<T> publisher() {
-        return new PublisherBuilder<T>();
+    public static <T, K> PublisherBuilder<T, K> publisher() {
+        return new PublisherBuilder<T, K>();
     }
 
-    public Publisher<T> build() {
-        return new MeasurerPublisher(measurer, matchCountNamer, durationNamer);
+    public Publisher<K> build() {
+        return new MeasurerPublisher<K>(measurer, matchCountNamer, durationNamer);
     }
 
-    public PublisherBuilder<T> measurer(Measurer measurer) {
+    public PublisherBuilder<T, K> measurer(Measurer measurer) {
         this.measurer = measurer;
         return this;
     }
 
-    public PublisherBuilder<T> matchCountPattern(final String matchCountPattern) {
+    public PublisherBuilder<T, K> matchCountPattern(final String matchCountPattern) {
         this.matchCountNamer = new MatchCountNamer() {
             @Override
             public String name(String experimentName, boolean matches) {
@@ -38,7 +37,7 @@ public class PublisherBuilder<T> {
         return this;
     }
 
-     public PublisherBuilder<T> durationPattern(final String durationPattern) {
+     public PublisherBuilder<T, K> durationPattern(final String durationPattern) {
         this.durationNamer = new DurationNamer() {
             @Override
             public String name(String experimentName, Experiment.TrialType trialType) {
@@ -48,12 +47,12 @@ public class PublisherBuilder<T> {
         return this;
     }
 
-    public PublisherBuilder<T> matchCountNamer(MatchCountNamer matchCountNamer) {
+    public PublisherBuilder<T, K> matchCountNamer(MatchCountNamer matchCountNamer) {
         this.matchCountNamer = matchCountNamer;
         return this;
     }
 
-    public PublisherBuilder<T> durationNamer(DurationNamer durationNamer) {
+    public PublisherBuilder<T, K> durationNamer(DurationNamer durationNamer) {
         this.durationNamer = durationNamer;
         return this;
     }

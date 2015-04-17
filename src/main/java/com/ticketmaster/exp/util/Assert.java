@@ -1,4 +1,4 @@
-package com.crypticmission.exp.util;
+package com.ticketmaster.exp.util;
 
 /**
  *

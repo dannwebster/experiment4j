@@ -1,8 +1,8 @@
-package com.crypticmission.exp;
+package com.ticketmaster.exp;
 
-import com.crypticmission.exp.Experiment.TrialType;
-import static com.crypticmission.exp.Experiment.TrialType.CANDIDATE;
-import static com.crypticmission.exp.Experiment.TrialType.CONTROL;
+import com.ticketmaster.exp.Experiment.TrialType;
+import static com.ticketmaster.exp.Experiment.TrialType.CANDIDATE;
+import static com.ticketmaster.exp.Experiment.TrialType.CONTROL;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.Optional;

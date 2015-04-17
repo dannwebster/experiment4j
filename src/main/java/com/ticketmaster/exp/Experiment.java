@@ -1,10 +1,9 @@
-package com.crypticmission.exp;
+package com.ticketmaster.exp;
 
-import static com.crypticmission.exp.Experiment.TrialType.CANDIDATE;
-import static com.crypticmission.exp.Experiment.TrialType.CONTROL;
-import com.crypticmission.exp.util.Assert;
-import com.crypticmission.exp.util.Optionalz;
-import com.crypticmission.exp.util.Tryz;
+import static com.ticketmaster.exp.Experiment.TrialType.CANDIDATE;
+import static com.ticketmaster.exp.Experiment.TrialType.CONTROL;
+import com.ticketmaster.exp.util.Assert;
+import com.ticketmaster.exp.util.Tryz;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Comparator;

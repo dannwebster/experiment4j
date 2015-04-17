@@ -1,22 +1,20 @@
-package com.crypticmission.exp.publish;
+package com.ticketmaster.exp.publish;
 
-import com.crypticmission.exp.Experiment;
-import static com.crypticmission.exp.Experiment.TrialType.CANDIDATE;
-import static com.crypticmission.exp.Experiment.TrialType.CONTROL;
-import com.crypticmission.exp.Result;
-import com.crypticmission.exp.Publisher;
-import com.crypticmission.exp.util.Assert;
-import java.util.function.Function;
+import static com.ticketmaster.exp.Experiment.TrialType.CANDIDATE;
+import static com.ticketmaster.exp.Experiment.TrialType.CONTROL;
+import com.ticketmaster.exp.Result;
+import com.ticketmaster.exp.Publisher;
+import com.ticketmaster.exp.util.Assert;
 
 /**
  * Created by dannwebster on 10/12/14.
  */
-public class MeasurerPublisher implements Publisher {
+public class MeasurerPublisher<K> implements Publisher {
     private final Measurer measurer;
     private final MatchCountNamer matchCountNamer;
     private final DurationNamer durationNamer;
 
-    public MeasurerPublisher(Measurer measurer, MatchCountNamer matchCountNamer, DurationNamer durationNamer) {
+    public MeasurerPublisher(Measurer<K> measurer, MatchCountNamer<K> matchCountNamer, DurationNamer<K> durationNamer) {
         Assert.notNull(measurer, "measurer must be non-null");
         Assert.notNull(matchCountNamer, "matchCountNamer must be non-null");
         Assert.notNull(durationNamer, "durationNamer must be non-null");

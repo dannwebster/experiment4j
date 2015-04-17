@@ -1,9 +1,6 @@
-package com.crypticmission.exp;
+package com.ticketmaster.exp;
 
-import com.crypticmission.exp.Experiment.TrialType;
-import static com.crypticmission.exp.Experiment.TrialType.CANDIDATE;
-import static com.crypticmission.exp.Experiment.TrialType.CONTROL;
-import com.crypticmission.exp.util.Assert;
+import com.ticketmaster.exp.util.Assert;
 import java.time.Instant;
 
 /**
@@ -28,12 +25,12 @@ import java.time.Instant;
  */
 public class Result<T> {
     private final String name;
-    private final TrialType first;
+    private final Experiment.TrialType first;
     private final Instant timestamp;
     private final TrialResult<T> candidateResult;
     private final TrialResult<T> controlResult;
 
-    public Result(String name, TrialType first, Instant timestamp, TrialResult<T> candidateResult, TrialResult<T> controlResult) {
+    public Result(String name, Experiment.TrialType first, Instant timestamp, TrialResult<T> candidateResult, TrialResult<T> controlResult) {
         Assert.hasText(name, "name must be non-empty");
         Assert.notNull(first, "first must be non-null");
         Assert.notNull(timestamp, "timestamp must be non-null");
@@ -47,9 +44,9 @@ public class Result<T> {
     }
 
     public String getName() { return name; }
-    public TrialType getFirst() { return first; }
-    public boolean getWasControlFirst() {return CONTROL.equals(first); }
-    public boolean getWasCandidateFirst() {return CANDIDATE.equals(first); }
+    public Experiment.TrialType getFirst() { return first; }
+    public boolean getWasControlFirst() {return Experiment.TrialType.CONTROL.equals(first); }
+    public boolean getWasCandidateFirst() {return Experiment.TrialType.CANDIDATE.equals(first); }
     public Instant getTimestamp() { return timestamp; }
 
     public TrialResult getCandidateResult() { return candidateResult; }
