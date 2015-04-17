@@ -1,0 +1,9 @@
+<jenkins>
+  <jdk>JDK8</jdk>
+  <maven_goals>clean install</maven_goals>
+  <!-- Set auto_deploy true if you want to activate your rundeck.xml -->
+  <auto_deploy>false</auto_deploy>
+  <notification_email>TAPDev@ticketmaster.com</notification_email>
+  <sonar_branch_override>master<sonar_branch_override>
+  <sonar_jdk>JDK8</sonar_jdk>
+</jenkins>
