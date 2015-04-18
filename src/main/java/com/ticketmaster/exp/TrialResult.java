@@ -1,10 +1,9 @@
 package com.ticketmaster.exp;
 
 import com.ticketmaster.exp.util.Assert;
-import com.ticketmaster.exp.util.Tryz;
-import java.time.Duration;
+import com.ticketmaster.exp.util.Try;
 
-import javaslang.exception.Try;
+import java.time.Duration;
 
 /**
  * Created by dannwebster on 10/12/14.
@@ -19,7 +18,7 @@ public class TrialResult<T> {
         Assert.notNull(duration, "duration must be non-null");
         this.trialType = trialType;
         this.duration = duration;
-        this.result = Tryz.of(value, exception);
+        this.result = Try.of(value, exception);
     }
 
     public Experiment.TrialType getTrialType() { return trialType; }
