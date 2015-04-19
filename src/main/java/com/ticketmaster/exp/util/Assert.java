@@ -5,7 +5,7 @@ package com.ticketmaster.exp.util;
  * @author dannwebster
  */
 public class Assert {
-    private Assert() {}
+    Assert() {}
 
     public static void notNull(Object s, String msg) { 
         if (s == null) {

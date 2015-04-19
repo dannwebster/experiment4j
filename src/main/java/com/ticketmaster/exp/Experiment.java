@@ -1,6 +1,6 @@
 package com.ticketmaster.exp;
 
-import com.sun.org.apache.bcel.internal.generic.ALOAD;
+import com.ticketmaster.exp.publish.PrintStreamPublisher;
 import com.ticketmaster.exp.util.Assert;
 import com.ticketmaster.exp.util.Duple;
 import com.ticketmaster.exp.util.Try;
@@ -10,25 +10,21 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.function.BiFunction;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static com.ticketmaster.exp.Experiment.TrialType.CANDIDATE;
-import static com.ticketmaster.exp.Experiment.TrialType.CONTROL;
-import static com.ticketmaster.exp.Selectors.ALWAYS;
-import static com.ticketmaster.exp.Selectors.NEVER;
+import static com.ticketmaster.exp.TrialType.CANDIDATE;
+import static com.ticketmaster.exp.TrialType.CONTROL;
+import static com.ticketmaster.exp.util.Selectors.ALWAYS;
+import static com.ticketmaster.exp.util.Selectors.NEVER;
 
 /**
  * Created by dannwebster on 10/12/14.
  */
 public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
-
-    public static enum TrialType {
-        CONTROL, 
-        CANDIDATE;
-    }
 
     private final String name;
     private final Duple<Supplier<TrialResult<T>>> controlThenCandidate;
@@ -36,16 +32,16 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
     private final BooleanSupplier doExperimentWhen;
     private final Clock clock;
 
-    private final Comparator<M> comparator;
+    private final BiFunction<M, M, Boolean> sameWhen;
     private final Function<T, M> simplifier;
 
     private final Publisher<T> publisher;
 
     public static class Simple<V> extends Experiment<V, V> {
         public Simple(String name, Callable<V> control, Callable<V> candidate, BooleanSupplier returnCandidateWhen,
-                      BooleanSupplier doExperimentWhen, Function<V, V> simplifier, Comparator<V> comparator,
+                      BooleanSupplier doExperimentWhen, Function<V, V> simplifier, BiFunction<V, V, Boolean> sameWhen,
                       Publisher<V> publisher, Clock clock) {
-            super(name, control, candidate, returnCandidateWhen, doExperimentWhen, simplifier, comparator, publisher,
+            super(name, control, candidate, returnCandidateWhen, doExperimentWhen, simplifier, sameWhen, publisher,
                     clock);
         }
     }
@@ -57,7 +53,7 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
         }
 
         public Simple<V> build() {
-            return new Simple<>(name, control, candidate, returnCandidateWhen, doExperimentWhen, simplifier, comparator, publisher, clock);
+            return new Simple<>(name, control, candidate, returnCandidateWhen, doExperimentWhen, simplifier, sameWhen, publisher, clock);
         }
     }
     public static class Builder<T, M> extends BaseBuilder<T, M, Experiment<T, M>, Builder<T, M>> {
@@ -67,7 +63,7 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
         }
 
         public Experiment<T, M> build() {
-            return new Experiment<>(name, control, candidate, returnCandidateWhen, doExperimentWhen, simplifier, comparator, publisher, clock);
+            return new Experiment<>(name, control, candidate, returnCandidateWhen, doExperimentWhen, simplifier, sameWhen, publisher, clock);
         }
     }
 
@@ -79,17 +75,9 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
         BooleanSupplier doExperimentWhen = ALWAYS;
 
         Function<T, M> simplifier;
-        Comparator<M> comparator = (m1, m2) -> m1.equals(m2) ? 0 : 1;
+        BiFunction<M, M, Boolean> sameWhen = Objects::equals;
 
-        Publisher<T> publisher = new Publisher<T>() {
-            @Override
-            public void publish(boolean wasMatch, Result<T> payload) {
-                System.out.println(name + " output " + (wasMatch ? "matched" : "did not matched"));
-                System.out.println(name + " candidate took " + payload.getCandidateResult().getDuration().toMillis() + " ms");
-                System.out.println(name + " control took " + payload.getControlResult().getDuration().toMillis() + " ms");
-
-            }
-        };
+        Publisher<T> publisher = PrintStreamPublisher.DEFAULT;
 
         Clock clock = Clock.systemUTC();
 
@@ -108,8 +96,8 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
             return me();
         }
 
-        public B sameWhen(Comparator<M> comparator) {
-            this.comparator = comparator;
+        public B sameWhen(BiFunction<M, M, Boolean> sameWhen) {
+            this.sameWhen = sameWhen;
             return me();
         }
 
@@ -125,6 +113,11 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
 
         public B returnCandidateWhen(BooleanSupplier returnCandidateWhen) {
             this.returnCandidateWhen = returnCandidateWhen;
+            return me();
+        }
+
+        public B doExperimentWhen(BooleanSupplier doExperimentWhen) {
+            this.doExperimentWhen = doExperimentWhen;
             return me();
         }
 
@@ -154,7 +147,7 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
             BooleanSupplier returnCandidateWhen,
             BooleanSupplier doExperimentWhen,
             Function<T, M> simplifier,
-            Comparator<M> comparator,
+            BiFunction<M, M, Boolean> sameWhen,
             Publisher<T> publisher,
             Clock clock) {
 
@@ -163,7 +156,7 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
         Assert.notNull(candidate, "candidate must be non-null");
         Assert.notNull(returnCandidateWhen, "returnCandidateWhen must be non-null");
         Assert.notNull(doExperimentWhen, "doExperimentWhen must be non-null");
-        Assert.notNull(comparator, "comparator must be non-null");
+        Assert.notNull(sameWhen, "sameWhen must be non-null");
         Assert.notNull(simplifier, "simplifier must be non-null");
         Assert.notNull(publisher, "publisher must be non-null");
         Assert.notNull(clock, "clock must be non-null");
@@ -175,7 +168,7 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
         );
         this.returnCandidateWhen = returnCandidateWhen;
         this.doExperimentWhen = doExperimentWhen;
-        this.comparator = comparator;
+        this.sameWhen = sameWhen;
         this.simplifier = simplifier;
         this.publisher = publisher;
         this.clock = clock;
@@ -212,7 +205,7 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
             boolean outputMatches = determineMatch(result);
             publisher.publish(outputMatches, result);
         } else {
-            TrialResult<T> trialResult = controlThenCandidate.getA1().get();
+            TrialResult<T> trialResult = controlThenCandidate.getE1().get();
              result = new Result<>(
                     name,
                     timestamp,
@@ -233,7 +226,7 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
                 .map( t -> simplifier.apply(t) )
                 .collect(Collectors.toList());
 
-        return m.size() == 2 && comparator.compare(m.get(0), m.get(1)) == 0;
+        return m.size() == 2 && sameWhen.apply(m.get(0), m.get(1));
     }
 
     final TrialResult<T> observe(TrialType trialType, Callable<T> callable) {

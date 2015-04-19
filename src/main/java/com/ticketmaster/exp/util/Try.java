@@ -28,6 +28,9 @@ public class Try<T> implements Callable<T>{
     }
 
     private Try(T t, Exception e) {
+        if (!(t == null ^ e == null)) {
+            throw new IllegalArgumentException("exactly one of value or exception must be non-null");
+        }
         this.v = Optional.ofNullable(t);
         this.x = Optional.ofNullable(e);
     }
@@ -39,9 +42,7 @@ public class Try<T> implements Callable<T>{
             throw x.get();
         }
     }
-    public Optional<T> value() {
-        return v;
-    }
+    public Optional<T> value() { return v; }
 
     public Optional<Exception> exception() {
         return x;

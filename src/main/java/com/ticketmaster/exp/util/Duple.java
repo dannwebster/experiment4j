@@ -7,33 +7,35 @@ import java.util.stream.Stream;
 /**
  * Created by dannwebster on 4/17/15.
  */
-public class Duple<A> {
-    private final A a1;
-    private final A a2;
-    private final List<A> l;
+public class Duple<E> {
+    private final E e1;
+    private final E e2;
+    private final List<E> l;
 
-    public static <A> Duple<A> from(A a1, A a2) {
-        return new Duple<>(a1, a2);
+    public static <E> Duple<E> from(E e1, E e2) {
+        return new Duple<>(e1, e2);
     }
 
-    private Duple(A a1, A a2) {
-        this.a1 = a1;
-        this.a2 = a2;
-        l = Arrays.asList(a1, a2);
+    private Duple(E e1, E e2) {
+        Assert.notNull(e1, "first element must be non null");
+        Assert.notNull(e2, "second element must be non null");
+        this.e1 = e1;
+        this.e2 = e2;
+        l = Arrays.asList(e1, e2);
     }
 
-    public Stream<A> parallelStream() {
+    public Stream<E> parallelStream() {
         return l.parallelStream();
     }
-    public Stream<A> stream() {
+    public Stream<E> stream() {
         return l.stream();
     }
 
-    public A getA1() {
-        return a1;
+    public E getE1() {
+        return e1;
     }
 
-    public A getA2() {
-        return a2;
+    public E getE2() {
+        return e2;
     }
 }
