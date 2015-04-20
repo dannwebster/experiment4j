@@ -116,4 +116,53 @@ public class TryTest {
         assertEquals(false, t.isSuccess());
         assertEquals(true, t.isFailure());
     }
+
+    @Test
+    public void testGetOrThrowShouldThrowWhenHasException() throws Exception {
+        // EXPECT
+        ex.expect(Exception.class);
+        ex.expectMessage("foo");
+
+        // GIVEN
+        Try<String> t = Try.of(null, new Exception("foo"));
+
+        // WHEN
+        t.getOrThrow();
+    }
+
+    @Test
+    public void testGetOrThrowUncheckedShouldThrowRuntimeExceptionWhenHasCheckedException() throws Exception {
+        // EXPECT
+        ex.expect(RuntimeException.class);
+        ex.expectMessage("foo");
+
+        // GIVEN
+        Try<String> t = Try.of(null, new Exception("foo"));
+
+        // WHEN
+        t.getOrThrowUnchecked();
+    }
+
+    @Test
+    public void testGetOrThrowUncheckedShouldThrowOriginalExceptionWhenItIsUnchecked() throws Exception {
+        // EXPECT
+        ex.expect(IllegalArgumentException.class);
+        ex.expectMessage("foo");
+
+        // GIVEN
+        Try<String> t = Try.of(null, new IllegalArgumentException("foo"));
+
+        // WHEN
+        t.getOrThrowUnchecked();
+    }
+
+    @Test
+    public void testGetOrThrowMethodsShouldReturnValueWhenExists() throws Exception {
+        // GIVEN
+        Try<String> t = Try.of("foo", null);
+
+        // THEN
+        assertEquals("foo", t.getOrThrowUnchecked());
+        assertEquals("foo", t.getOrThrow());
+    }
 }

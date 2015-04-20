@@ -15,8 +15,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 public class ScienceTest {
-
     Supplier callTracker  = mock(Supplier.class);
+    public static final Object[] NO_ARGS = {};
 
     @Before
     public void setUp() throws Exception {
@@ -36,8 +36,8 @@ public class ScienceTest {
                     callTracker.get();
                     return Experiment
                         .simple("my-experiment")
-                        .control(() -> "foo")
-                        .candidate(() -> "candidate")
+                        .control((args) -> "foo")
+                        .candidate((args) -> "candidate")
                         .get();
             }
         );
@@ -54,13 +54,13 @@ public class ScienceTest {
                     callTracker.get();
                     return Experiment
                         .named("my-experiment")
-                        .control(() -> "foo")
-                        .candidate(() -> "candidate").get();
+                        .control((args) -> "foo")
+                        .candidate((args) -> "candidate").get();
                 }
-        ).call();
+        ).apply(new Object[]{});
 
         // WHEN
-        String str = Science.science().doExperiment("my-experiment");
+        String str = Science.science().doExperiment("my-experiment", new Object[]{});
 
 
         // THEN
@@ -72,10 +72,10 @@ public class ScienceTest {
     @Test
     public void testRepeatedExperimentCallDoesNotRebuildExperiment() throws Exception {
         // GIVEN
-        assertEquals("foo", buildExperiment(callTracker).call());
+        assertEquals("foo", buildExperiment(callTracker).apply(NO_ARGS));
 
         // WHEN
-        assertEquals("foo", buildExperiment(callTracker).call());
+        assertEquals("foo", buildExperiment(callTracker).apply(NO_ARGS));
 
         // THEN
         verify(callTracker, times(1)).get();
@@ -129,12 +129,12 @@ public class ScienceTest {
                 "my-experiment",
                 Experiment
                     .<String>simple("my-experiment")
-                    .control(() -> (String) null)
-                    .candidate(() -> "candidate")
+                    .control((args) -> (String) null)
+                    .candidate((args) -> "candidate")
         );
 
         // WHEN
-        String s = Science.science().doExperiment("my-experiment");
+        String s = Science.science().doExperiment("my-experiment", NO_ARGS);
 
         // THEN
         assertNull(s);

@@ -23,10 +23,10 @@ public class Science {
         return INSTANCE;
     }
 
-    public <M> M doExperiment(String name) throws Exception {
+    public <M> M doExperiment(String name, Object[] args) throws Exception {
         return (M) getExperiment(name)
                 .orElseGet(() -> null)
-                .call();
+                .apply(args);
     }
 
     public <T, M> Experiment<T, M> experiment(String name, Supplier<? extends Experiment> experimentBuilder) {

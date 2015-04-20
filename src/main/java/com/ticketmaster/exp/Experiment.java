@@ -26,10 +26,10 @@ import static com.ticketmaster.exp.util.Selectors.NEVER;
 /**
  * Created by dannwebster on 10/12/14.
  */
-public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
+public class Experiment<T, M> implements Function<Object[], T> {
 
     private final String name;
-    private final Duple<Supplier<TrialResult<T>>> controlThenCandidate;
+    private final Duple<Function<Object[], TrialResult<T>>> controlThenCandidate;
     private final BooleanSupplier returnCandidateWhen;
     private final BooleanSupplier doExperimentWhen;
     private final Clock clock;
@@ -49,13 +49,14 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
         public B publishedBy(Publisher<T> publisher);
         public B returnCandidateWhen(BooleanSupplier returnCandidateWhen);
         public B doExperimentWhen(BooleanSupplier doExperimentWhen);
-        public B control(Callable<T> control);
-        public B candidate(Callable<T> candidate);
+        public B control(Function<Object[], T> control);
+        public B candidate(Function<Object[], T> candidate);
     }
 
     public static class Simple<V> extends Experiment<V, V> {
         public Simple(String name,
-                      Callable<V> control, Callable<V> candidate,
+                      Function<Object[], V> control,
+                      Function<Object[], V> candidate,
                       BooleanSupplier returnCandidateWhen,
                       BooleanSupplier doExperimentWhen,
                       Function<V, V> simplifier,
@@ -72,8 +73,8 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
     public static abstract class BaseBuilder<T, M, E extends Experiment<T, M>, B extends Builder<T, M, E, B>>
             implements Builder<T, M, E , B> {
         String name;
-        Callable<T> control;
-        Callable<T> candidate;
+        Function<Object[], T> control;
+        Function<Object[], T> candidate;
         BooleanSupplier returnCandidateWhen = NEVER;
         BooleanSupplier doExperimentWhen = ALWAYS;
 
@@ -130,12 +131,12 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
             return me();
         }
 
-        public B control(Callable<T> control) {
+        public B control(Function<Object[], T> control) {
             this.control = control;
             return me();
         }
 
-        public B candidate(Callable<T> candidate) {
+        public B candidate(Function<Object[], T> candidate) {
             this.candidate = candidate;
             return me();
         }
@@ -178,8 +179,8 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
 
     Experiment(
             String name, 
-            Callable<T> control, 
-            Callable<T> candidate, 
+            Function<Object[], T> control,
+            Function<Object[], T> candidate,
             BooleanSupplier returnCandidateWhen,
             BooleanSupplier doExperimentWhen,
             Function<T, M> simplifier,
@@ -201,8 +202,8 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
 
         this.name = name;
         this.controlThenCandidate = Duple.from(
-                () -> observe(CONTROL, control),
-                () -> observe(CANDIDATE, candidate)
+                (args) -> observe(CONTROL, control, args),
+                (args) -> observe(CANDIDATE, candidate, args)
         );
         this.returnCandidateWhen = returnCandidateWhen;
         this.doExperimentWhen = doExperimentWhen;
@@ -214,25 +215,24 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
     }
 
 
-    public final T call() throws Exception{
-        return perform().call();
+    public final T apply(Object[] args) {
+        return perform(args).getOrThrowUnchecked();
     }
 
-    public final Try<T> perform() {
+    public final Try<T> perform(Object[] args) {
         return (returnCandidateWhen.getAsBoolean() ?
-                this.get().getCandidateResult() :
-                this.get().getControlResult())
+                this.getResult(args).getCandidateResult() :
+                this.getResult(args).getControlResult())
                 .getTryResult();
     }
 
-    @Override
-    public final Result<T> get() {
+    public final Result<T> getResult(Object[] args) {
         Result<T> result;
         Instant timestamp = Instant.now();
         if (doExperimentWhen.getAsBoolean()) {
             Map<TrialType, List<TrialResult<T>>> results = controlThenCandidate
                     .parallelStream()
-                    .map(Supplier::get)
+                    .map( (function) -> function.apply(args) )
                     .collect(Collectors.groupingBy((TrialResult t) -> t.getTrialType()));
 
             result = new Result<>(
@@ -244,7 +244,7 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
             MatchType matchType = determineMatch(result);
             publisher.publish(matchType, result);
         } else {
-            TrialResult<T> trialResult = controlThenCandidate.getE1().get();
+            TrialResult<T> trialResult = controlThenCandidate.getE1().apply(args);
              result = new Result<>(
                     name,
                     timestamp,
@@ -258,12 +258,12 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
         return result.determineMatch(this.simplifier, this.sameWhen, this.exceptionsSameWhen);
     }
 
-    final TrialResult<T> observe(TrialType trialType, Callable<T> callable) {
+    final TrialResult<T> observe(TrialType trialType, Function<Object[], T> callable, Object[] args) {
         Instant start = clock.instant();
         Exception exception = null;
         T value = null;
         try {
-            value = callable.call();
+            value = callable.apply(args);
         } catch (Exception t) {
             exception = t;
         }

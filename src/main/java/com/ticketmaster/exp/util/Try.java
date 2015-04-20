@@ -35,6 +35,24 @@ public class Try<T> implements Callable<T>{
         this.x = Optional.ofNullable(e);
     }
 
+    public T getOrThrow() throws Exception {
+        return call();
+    }
+
+    public T getOrThrowUnchecked() {
+        return get();
+    }
+
+    public T get() {
+        try {
+            return call();
+        } catch (Exception e) {
+            throw e instanceof RuntimeException ?
+                    (RuntimeException) e :
+                    new RuntimeException(e);
+        }
+    }
+
     public T call() throws Exception {
         if (v.isPresent()) {
             return v.get();
