@@ -10,6 +10,7 @@ import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
+import com.ticketmaster.exp.util.ReturnChoices;
 import com.ticketmaster.exp.util.SameWhens;
 import com.ticketmaster.exp.util.Selectors;
 import org.junit.Before;
@@ -96,7 +97,7 @@ public class ExperimentTest {
                 .candidate(candidate)
                 .timedBy(c)
                 .simplifiedBy(a -> a)
-                .returnCandidateWhen(Selectors.ALWAYS)
+                .returnChoice(ReturnChoices.alwaysCandidate())
                 .publishedBy(p)
                 .get();
 

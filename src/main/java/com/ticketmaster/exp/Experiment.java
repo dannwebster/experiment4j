@@ -2,10 +2,7 @@ package com.ticketmaster.exp;
 
 import com.ticketmaster.exp.publish.MeasurerPublisher;
 import com.ticketmaster.exp.publish.PrintStreamMeasurer;
-import com.ticketmaster.exp.util.Assert;
-import com.ticketmaster.exp.util.Duple;
-import com.ticketmaster.exp.util.SameWhens;
-import com.ticketmaster.exp.util.Try;
+import com.ticketmaster.exp.util.*;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -30,7 +27,7 @@ public class Experiment<I, O, M> implements Function<I, O> {
 
     private final String name;
     private final Duple<Function<I, TrialResult<O>>> controlThenCandidate;
-    private final BooleanSupplier returnCandidateWhen;
+    private final Function<Result<O>, Try<O>> returnChoice;
     private final BooleanSupplier doExperimentWhen;
     private final Clock clock;
 
@@ -47,7 +44,7 @@ public class Experiment<I, O, M> implements Function<I, O> {
         public B exceptionsSameWhen(BiFunction<Exception, Exception, Boolean> sameWhen);
         public B timedBy(Clock clock);
         public B publishedBy(Publisher<O> publisher);
-        public B returnCandidateWhen(BooleanSupplier returnCandidateWhen);
+        public B returnChoice(Function<Result<O>, Try<O>> returnChoice);
         public B doExperimentWhen(BooleanSupplier doExperimentWhen);
         public B control(Function<I, O> control);
         public B candidate(Function<I, O> candidate);
@@ -57,14 +54,14 @@ public class Experiment<I, O, M> implements Function<I, O> {
         public Simple(String name,
                       Function<I, O> control,
                       Function<I, O> candidate,
-                      BooleanSupplier returnCandidateWhen,
+                      Function<Result<O>, Try<O>> returnChoice,
                       BooleanSupplier doExperimentWhen,
                       Function<O, O> simplifier,
                       BiFunction<O, O, Boolean> sameWhen,
                       BiFunction<Exception, Exception, Boolean> exceptionsSameWhen,
                       Publisher<O> publisher,
                       Clock clock) {
-            super(name, control, candidate, returnCandidateWhen,
+            super(name, control, candidate, returnChoice,
                     doExperimentWhen, simplifier, sameWhen, exceptionsSameWhen,
                     publisher, clock);
         }
@@ -75,7 +72,7 @@ public class Experiment<I, O, M> implements Function<I, O> {
         String name;
         Function<I, O> control;
         Function<I, O> candidate;
-        BooleanSupplier returnCandidateWhen = NEVER;
+        Function<Result<O>, Try<O>> returnChoice = ReturnChoices.alwaysControl();
         BooleanSupplier doExperimentWhen = ALWAYS;
 
         Function<O, M> simplifier;
@@ -121,8 +118,8 @@ public class Experiment<I, O, M> implements Function<I, O> {
             return me();
         }
 
-        public B returnCandidateWhen(BooleanSupplier returnCandidateWhen) {
-            this.returnCandidateWhen = returnCandidateWhen;
+        public B returnChoice(Function<Result<O>, Try<O>> returnChoice) {
+            this.returnChoice = returnChoice;
             return me();
         }
 
@@ -152,7 +149,7 @@ public class Experiment<I, O, M> implements Function<I, O> {
         @Override
         public Simple<I, O> get() {
             return new Simple<>(name, control, candidate,
-                    returnCandidateWhen, doExperimentWhen,
+                    returnChoice, doExperimentWhen,
                     simplifier, sameWhen, exceptionsSameWhen,
                     publisher, clock);
         }
@@ -165,7 +162,7 @@ public class Experiment<I, O, M> implements Function<I, O> {
 
         public Experiment<I, O, M> get() {
             return new Experiment<>(name, control, candidate,
-                    returnCandidateWhen, doExperimentWhen, simplifier,
+                    returnChoice, doExperimentWhen, simplifier,
                     sameWhen, exceptionsSameWhen, publisher, clock);
         }
     }
@@ -181,7 +178,7 @@ public class Experiment<I, O, M> implements Function<I, O> {
             String name, 
             Function<I, O> control,
             Function<I, O> candidate,
-            BooleanSupplier returnCandidateWhen,
+            Function<Result<O>, Try<O>> returnChoice,
             BooleanSupplier doExperimentWhen,
             Function<O, M> simplifier,
             BiFunction<M, M, Boolean> sameWhen,
@@ -192,7 +189,7 @@ public class Experiment<I, O, M> implements Function<I, O> {
         Assert.hasText(name, "name must be non-null and have text");
         Assert.notNull(control, "control must be non-null");
         Assert.notNull(candidate, "candidate must be non-null");
-        Assert.notNull(returnCandidateWhen, "returnCandidateWhen must be non-null");
+        Assert.notNull(returnChoice, "returnChoice must be non-null");
         Assert.notNull(doExperimentWhen, "doExperimentWhen must be non-null");
         Assert.notNull(sameWhen, "sameWhen must be non-null");
         Assert.notNull(exceptionsSameWhen, "exceptionsSameWhen must be non-null");
@@ -205,7 +202,7 @@ public class Experiment<I, O, M> implements Function<I, O> {
                 (args) -> observe(CONTROL, control, args),
                 (args) -> observe(CANDIDATE, candidate, args)
         );
-        this.returnCandidateWhen = returnCandidateWhen;
+        this.returnChoice = returnChoice;
         this.doExperimentWhen = doExperimentWhen;
         this.sameWhen = sameWhen;
         this.exceptionsSameWhen = exceptionsSameWhen;
@@ -220,10 +217,7 @@ public class Experiment<I, O, M> implements Function<I, O> {
     }
 
     public final Try<O> perform(I args) {
-        return (returnCandidateWhen.getAsBoolean() ?
-                this.getResult(args).getCandidateResult() :
-                this.getResult(args).getControlResult())
-                .getTryResult();
+        return returnChoice.apply(getResult(args));
     }
 
     public final Result<O> getResult(I args) {
@@ -232,7 +226,7 @@ public class Experiment<I, O, M> implements Function<I, O> {
         if (doExperimentWhen.getAsBoolean()) {
             Map<TrialType, List<TrialResult<O>>> results = controlThenCandidate
                     .parallelStream()
-                    .map( (function) -> function.apply(args) )
+                    .map((function) -> function.apply(args))
                     .collect(Collectors.groupingBy((TrialResult t) -> t.getTrialType()));
 
             result = new Result<>(
