@@ -29,10 +29,10 @@ import static org.mockito.Mockito.*;
  */
 
 public class ExperimentTest {
-    public static final Object[] EMPTY = {};
+    public static final String ARGS = "foo";
 
-    Function<Object[], String> candidate = mock(Function.class);
-    Function<Object[], String> control = mock(Function.class);
+    Function<String, String> candidate = mock(Function.class);
+    Function<String, String> control = mock(Function.class);
     Publisher<String> p = mock(Publisher.class);
     Clock c = mock(Clock.class);
 
@@ -47,7 +47,7 @@ public class ExperimentTest {
     public void testSimpleCallsPublish() throws Exception {
 
         // GIVEN
-        Function<Object[], String> e = Experiment.<String>simple("my simple experiment")
+        Function<String, String> e = Experiment.<String, String>simple("my simple experiment")
                 .control(control)
                 .candidate(candidate)
                 .timedBy(c)
@@ -55,13 +55,13 @@ public class ExperimentTest {
                 .get();
 
         // WHEN
-        String s = e.apply(EMPTY);
+        String s = e.apply(ARGS);
 
         // THEN
         assertEquals("control", s);
         verify(p, times(1)).publish(Matchers.eq(MatchType.MISMATCH), Matchers.any(Result.class));
-        verify(candidate, times(1)).apply(EMPTY);
-        verify(control, times(1)).apply(EMPTY);
+        verify(candidate, times(1)).apply(ARGS);
+        verify(control, times(1)).apply(ARGS);
     }
 
     @Test
@@ -69,7 +69,7 @@ public class ExperimentTest {
 
         // GIVEN
         when(candidate.apply(any())).thenReturn("control");
-        Experiment<String, String> e = Experiment.<String, String>named("my experiment")
+        Experiment<String, String, String> e = Experiment.<String, String, String>named("my experiment")
                 .control(control)
                 .candidate(candidate)
                 .timedBy(c)
@@ -78,20 +78,20 @@ public class ExperimentTest {
                 .get();
 
         // WHEN
-        String s = e.apply(EMPTY);
+        String s = e.apply(ARGS);
 
         // THEN
         assertEquals("control", s);
         verify(p, times(1)).publish(Matchers.eq(MatchType.MATCH), Matchers.any(Result.class));
-        verify(candidate, times(1)).apply(EMPTY);
-        verify(control, times(1)).apply(EMPTY);
+        verify(candidate, times(1)).apply(ARGS);
+        verify(control, times(1)).apply(ARGS);
     }
 
     @Test
     public void testReturnCandidate() throws Exception {
 
         // GIVEN
-        Experiment<String, String> e = Experiment.<String, String>named("my experiment")
+        Experiment<String, String, String> e = Experiment.<String, String, String>named("my experiment")
                 .control(control)
                 .candidate(candidate)
                 .timedBy(c)
@@ -101,20 +101,20 @@ public class ExperimentTest {
                 .get();
 
         // WHEN
-        String s = e.apply(EMPTY);
+        String s = e.apply(ARGS);
 
         // THEN
         assertEquals("candidate", s);
         verify(p, times(1)).publish(Matchers.eq(MatchType.MISMATCH), Matchers.any(Result.class));
-        verify(candidate, times(1)).apply(EMPTY);
-        verify(control, times(1)).apply(EMPTY);
+        verify(candidate, times(1)).apply(ARGS);
+        verify(control, times(1)).apply(ARGS);
     }
 
     @Test
     public void testIgnoreExperiment() throws Exception {
 
         // GIVEN
-        Experiment<String, String> e = Experiment.<String, String>named("my experiment")
+        Experiment<String, String, String> e = Experiment.<String, String, String>named("my experiment")
                 .control(control)
                 .candidate(candidate)
                 .timedBy(c)
@@ -124,12 +124,12 @@ public class ExperimentTest {
                 .get();
 
         // WHEN
-        String s = e.apply(EMPTY);
+        String s = e.apply(ARGS);
 
         // THEN
         assertEquals("control", s);
-        verify(control, times(1)).apply(EMPTY);
-        verify(candidate, never()).apply(EMPTY);
+        verify(control, times(1)).apply(ARGS);
+        verify(candidate, never()).apply(ARGS);
         verify(p, never()).publish(any(), any());
     }
 
@@ -140,9 +140,9 @@ public class ExperimentTest {
     public void testFailsOnControlFailure() throws Exception {
 
         // GIVEN
-        when(control.apply(EMPTY)).thenThrow(new IllegalArgumentException("control failed"));
+        when(control.apply(ARGS)).thenThrow(new IllegalArgumentException("control failed"));
 
-        Experiment<String, String> e = Experiment.<String, String>named("my experiment")
+        Experiment<String, String, String> e = Experiment.<String, String, String>named("my experiment")
                 .control(control)
                 .candidate(candidate)
                 .timedBy(c)
@@ -156,16 +156,16 @@ public class ExperimentTest {
         ex.expectMessage("control failed");
 
         // WHEN
-        String s = e.apply(EMPTY);
+        String s = e.apply(ARGS);
     }
 
     @Test
     public void testSucceedsOnCandiateFailure() throws Exception {
 
         // GIVEN
-        when(candidate.apply(EMPTY)).thenThrow(new IllegalArgumentException("control failed"));
+        when(candidate.apply(ARGS)).thenThrow(new IllegalArgumentException("control failed"));
 
-        Experiment<String, String> e = Experiment.<String, String>named("my experiment")
+        Experiment<String, String, String> e = Experiment.<String, String, String>named("my experiment")
                 .control(control)
                 .candidate(candidate)
                 .simplifiedBy(a -> a)
@@ -176,12 +176,12 @@ public class ExperimentTest {
                 .get();
 
         // WHEN
-        String s = e.apply(EMPTY);
+        String s = e.apply(ARGS);
 
         // THEN
         assertEquals("control", s);
-        verify(control, times(1)).apply(EMPTY);
-        verify(candidate, never()).apply(EMPTY);
+        verify(control, times(1)).apply(ARGS);
+        verify(candidate, never()).apply(ARGS);
         verify(p, never()).publish(any(), any());
     }
 }

@@ -26,43 +26,43 @@ import static com.ticketmaster.exp.util.Selectors.NEVER;
 /**
  * Created by dannwebster on 10/12/14.
  */
-public class Experiment<T, M> implements Function<Object[], T> {
+public class Experiment<I, O, M> implements Function<I, O> {
 
     private final String name;
-    private final Duple<Function<Object[], TrialResult<T>>> controlThenCandidate;
+    private final Duple<Function<I, TrialResult<O>>> controlThenCandidate;
     private final BooleanSupplier returnCandidateWhen;
     private final BooleanSupplier doExperimentWhen;
     private final Clock clock;
 
     private final BiFunction<M, M, Boolean> sameWhen;
     private final BiFunction<Exception, Exception, Boolean> exceptionsSameWhen;
-    private final Function<T, M> simplifier;
+    private final Function<O, M> simplifier;
 
-    private final Publisher<T> publisher;
+    private final Publisher<O> publisher;
 
-    public interface Builder<T, M, E extends Experiment<T, M>, B extends Builder<T, M, E, B>> extends Supplier<Experiment<T, M>>{
-        public Experiment<T, M> get();
-        public B simplifiedBy(Function<T, M> simplifier);
+    public interface Builder<I, O, M, E extends Experiment<I, O, M>, B extends Builder<I, O, M, E, B>> extends Supplier<Experiment<I, O, M>>{
+        public Experiment<I, O, M> get();
+        public B simplifiedBy(Function<O, M> simplifier);
         public B sameWhen(BiFunction<M, M, Boolean> sameWhen);
         public B exceptionsSameWhen(BiFunction<Exception, Exception, Boolean> sameWhen);
         public B timedBy(Clock clock);
-        public B publishedBy(Publisher<T> publisher);
+        public B publishedBy(Publisher<O> publisher);
         public B returnCandidateWhen(BooleanSupplier returnCandidateWhen);
         public B doExperimentWhen(BooleanSupplier doExperimentWhen);
-        public B control(Function<Object[], T> control);
-        public B candidate(Function<Object[], T> candidate);
+        public B control(Function<I, O> control);
+        public B candidate(Function<I, O> candidate);
     }
 
-    public static class Simple<V> extends Experiment<V, V> {
+    public static class Simple<I, O> extends Experiment<I, O, O> {
         public Simple(String name,
-                      Function<Object[], V> control,
-                      Function<Object[], V> candidate,
+                      Function<I, O> control,
+                      Function<I, O> candidate,
                       BooleanSupplier returnCandidateWhen,
                       BooleanSupplier doExperimentWhen,
-                      Function<V, V> simplifier,
-                      BiFunction<V, V, Boolean> sameWhen,
+                      Function<O, O> simplifier,
+                      BiFunction<O, O, Boolean> sameWhen,
                       BiFunction<Exception, Exception, Boolean> exceptionsSameWhen,
-                      Publisher<V> publisher,
+                      Publisher<O> publisher,
                       Clock clock) {
             super(name, control, candidate, returnCandidateWhen,
                     doExperimentWhen, simplifier, sameWhen, exceptionsSameWhen,
@@ -70,19 +70,19 @@ public class Experiment<T, M> implements Function<Object[], T> {
         }
     }
 
-    public static abstract class BaseBuilder<T, M, E extends Experiment<T, M>, B extends Builder<T, M, E, B>>
-            implements Builder<T, M, E , B> {
+    public static abstract class BaseBuilder<I, O, M, E extends Experiment<I, O, M>, B extends Builder<I, O, M, E, B>>
+            implements Builder<I, O, M, E , B> {
         String name;
-        Function<Object[], T> control;
-        Function<Object[], T> candidate;
+        Function<I, O> control;
+        Function<I, O> candidate;
         BooleanSupplier returnCandidateWhen = NEVER;
         BooleanSupplier doExperimentWhen = ALWAYS;
 
-        Function<T, M> simplifier;
+        Function<O, M> simplifier;
         BiFunction<M, M, Boolean> sameWhen = Objects::equals;
         BiFunction<Exception, Exception, Boolean> exceptionsSameWhen = SameWhens.classesMatch();
 
-        Publisher<T> publisher = MeasurerPublisher.DEFAULT;
+        Publisher<O> publisher = MeasurerPublisher.DEFAULT;
 
         Clock clock = Clock.systemUTC();
 
@@ -96,7 +96,7 @@ public class Experiment<T, M> implements Function<Object[], T> {
             return (B) this;
         }
 
-        public B simplifiedBy(Function<T, M> simplifier) {
+        public B simplifiedBy(Function<O, M> simplifier) {
             this.simplifier = simplifier;
             return me();
         }
@@ -116,7 +116,7 @@ public class Experiment<T, M> implements Function<Object[], T> {
             return me();
         }
 
-        public B publishedBy(Publisher<T> publisher) {
+        public B publishedBy(Publisher<O> publisher) {
             this.publisher = publisher;
             return me();
         }
@@ -131,62 +131,62 @@ public class Experiment<T, M> implements Function<Object[], T> {
             return me();
         }
 
-        public B control(Function<Object[], T> control) {
+        public B control(Function<I, O> control) {
             this.control = control;
             return me();
         }
 
-        public B candidate(Function<Object[], T> candidate) {
+        public B candidate(Function<I, O> candidate) {
             this.candidate = candidate;
             return me();
         }
 
     }
 
-    public static class SimpleBuilder<V> extends BaseBuilder<V, V, Simple<V>, SimpleBuilder<V>> {
+    public static class SimpleBuilder<I, O> extends BaseBuilder<I, O, O, Simple<I, O>, SimpleBuilder<I, O>> {
         public SimpleBuilder(String name) {
             super(name);
             super.simplifiedBy(a -> a);
         }
 
         @Override
-        public Simple<V> get() {
+        public Simple<I, O> get() {
             return new Simple<>(name, control, candidate,
                     returnCandidateWhen, doExperimentWhen,
                     simplifier, sameWhen, exceptionsSameWhen,
                     publisher, clock);
         }
     }
-    public static class ExperimentBuilder<T, M> extends BaseBuilder<T, M, Experiment<T, M>, ExperimentBuilder<T, M>> {
+    public static class ExperimentBuilder<I, O, M> extends BaseBuilder<I, O, M, Experiment<I, O, M>, ExperimentBuilder<I, O, M>> {
 
         public ExperimentBuilder(String name) {
             super(name);
         }
 
-        public Experiment<T, M> get() {
+        public Experiment<I, O, M> get() {
             return new Experiment<>(name, control, candidate,
                     returnCandidateWhen, doExperimentWhen, simplifier,
                     sameWhen, exceptionsSameWhen, publisher, clock);
         }
     }
 
-    public static <T> SimpleBuilder<T> simple(String name) {
+    public static <I, O> SimpleBuilder<I, O> simple(String name) {
         return new SimpleBuilder<>(name);
     }
-    public static <T, M> ExperimentBuilder<T, M> named(String name) {
+    public static <I, O, M> ExperimentBuilder<I, O, M> named(String name) {
         return new ExperimentBuilder<>(name);
     }
 
     Experiment(
             String name, 
-            Function<Object[], T> control,
-            Function<Object[], T> candidate,
+            Function<I, O> control,
+            Function<I, O> candidate,
             BooleanSupplier returnCandidateWhen,
             BooleanSupplier doExperimentWhen,
-            Function<T, M> simplifier,
+            Function<O, M> simplifier,
             BiFunction<M, M, Boolean> sameWhen,
             BiFunction<Exception, Exception, Boolean> exceptionsSameWhen,
-            Publisher<T> publisher,
+            Publisher<O> publisher,
             Clock clock) {
 
         Assert.hasText(name, "name must be non-null and have text");
@@ -215,22 +215,22 @@ public class Experiment<T, M> implements Function<Object[], T> {
     }
 
 
-    public final T apply(Object[] args) {
+    public final O apply(I args) {
         return perform(args).getOrThrowUnchecked();
     }
 
-    public final Try<T> perform(Object[] args) {
+    public final Try<O> perform(I args) {
         return (returnCandidateWhen.getAsBoolean() ?
                 this.getResult(args).getCandidateResult() :
                 this.getResult(args).getControlResult())
                 .getTryResult();
     }
 
-    public final Result<T> getResult(Object[] args) {
-        Result<T> result;
+    public final Result<O> getResult(I args) {
+        Result<O> result;
         Instant timestamp = Instant.now();
         if (doExperimentWhen.getAsBoolean()) {
-            Map<TrialType, List<TrialResult<T>>> results = controlThenCandidate
+            Map<TrialType, List<TrialResult<O>>> results = controlThenCandidate
                     .parallelStream()
                     .map( (function) -> function.apply(args) )
                     .collect(Collectors.groupingBy((TrialResult t) -> t.getTrialType()));
@@ -244,7 +244,7 @@ public class Experiment<T, M> implements Function<Object[], T> {
             MatchType matchType = determineMatch(result);
             publisher.publish(matchType, result);
         } else {
-            TrialResult<T> trialResult = controlThenCandidate.getE1().apply(args);
+            TrialResult<O> trialResult = controlThenCandidate.getE1().apply(args);
              result = new Result<>(
                     name,
                     timestamp,
@@ -254,14 +254,14 @@ public class Experiment<T, M> implements Function<Object[], T> {
         return result;
     }
 
-    public MatchType determineMatch(Result<T> result) {
+    public MatchType determineMatch(Result<O> result) {
         return result.determineMatch(this.simplifier, this.sameWhen, this.exceptionsSameWhen);
     }
 
-    final TrialResult<T> observe(TrialType trialType, Function<Object[], T> callable, Object[] args) {
+    final TrialResult<O> observe(TrialType trialType, Function<I, O> callable, I args) {
         Instant start = clock.instant();
         Exception exception = null;
-        T value = null;
+        O value = null;
         try {
             value = callable.apply(args);
         } catch (Exception t) {

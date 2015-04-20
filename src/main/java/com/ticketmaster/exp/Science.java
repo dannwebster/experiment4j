@@ -23,17 +23,17 @@ public class Science {
         return INSTANCE;
     }
 
-    public <M> M doExperiment(String name, Object[] args) throws Exception {
-        return (M) getExperiment(name)
+    public <I, O> O doExperiment(String name, I args) throws Exception {
+        return (O) getExperiment(name)
                 .orElseGet(() -> null)
                 .apply(args);
     }
 
-    public <T, M> Experiment<T, M> experiment(String name, Supplier<? extends Experiment> experimentBuilder) {
+    public <I, O, M> Experiment<I, O, M> experiment(String name, Supplier<? extends Experiment> experimentBuilder) {
         return cache.computeIfAbsent(name, (k) -> experimentBuilder.get() );
     }
 
-    public <T, M> Optional<Experiment<T, M>> getExperiment(String name) {
+    public <I, O, M> Optional<Experiment<I, O, M>> getExperiment(String name) {
         return Optional.ofNullable(cache.get(name));
     }
 

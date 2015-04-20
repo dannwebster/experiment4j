@@ -16,7 +16,7 @@ import static org.mockito.Mockito.verify;
 
 public class ScienceTest {
     Supplier callTracker  = mock(Supplier.class);
-    public static final Object[] NO_ARGS = {};
+    public static final String ARGS = "args";
 
     @Before
     public void setUp() throws Exception {
@@ -29,7 +29,7 @@ public class ScienceTest {
         assertEquals(0, Science.science().getExperimentCount());
     }
 
-    public Experiment<String, String> buildExperiment(Supplier callTracker) throws Exception{
+    public Experiment<String, String, String> buildExperiment(Supplier callTracker) throws Exception{
         return Science.science().experiment(
                 "my-experiment",
                 () -> {
@@ -45,7 +45,7 @@ public class ScienceTest {
 
     @Test
     public void testDoExperimentDoesNotRebuildExperiment() throws Exception {
-        Experiment<String, String> exp = buildExperiment(callTracker);
+        Experiment<String, String, String> exp = buildExperiment(callTracker);
 
         // GIVEN
         Science.science().experiment(
@@ -72,10 +72,10 @@ public class ScienceTest {
     @Test
     public void testRepeatedExperimentCallDoesNotRebuildExperiment() throws Exception {
         // GIVEN
-        assertEquals("foo", buildExperiment(callTracker).apply(NO_ARGS));
+        assertEquals("foo", buildExperiment(callTracker).apply(ARGS));
 
         // WHEN
-        assertEquals("foo", buildExperiment(callTracker).apply(NO_ARGS));
+        assertEquals("foo", buildExperiment(callTracker).apply(ARGS));
 
         // THEN
         verify(callTracker, times(1)).get();
@@ -87,7 +87,7 @@ public class ScienceTest {
         // no build experiment
 
         // WHEN
-        Optional<Experiment<String, String>> optEx = Science.science().getExperiment("my-experiment");
+        Optional<Experiment<String, String, String>> optEx = Science.science().getExperiment("my-experiment");
 
         // THEN
         assertEquals(false, optEx.isPresent());
@@ -99,7 +99,7 @@ public class ScienceTest {
         buildExperiment(callTracker);
 
         // WHEN
-        Optional<Experiment<String, String>> optEx = Science.science().getExperiment("my-experiment");
+        Optional<Experiment<String, String, String>> optEx = Science.science().getExperiment("my-experiment");
 
         // THEN
         assertEquals(true, optEx.isPresent());
@@ -128,13 +128,13 @@ public class ScienceTest {
         Science.science().experiment(
                 "my-experiment",
                 Experiment
-                    .<String>simple("my-experiment")
+                    .<String, String>simple("my-experiment")
                     .control((args) -> (String) null)
                     .candidate((args) -> "candidate")
         );
 
         // WHEN
-        String s = Science.science().doExperiment("my-experiment", NO_ARGS);
+        String s = Science.science().doExperiment("my-experiment", ARGS);
 
         // THEN
         assertNull(s);
