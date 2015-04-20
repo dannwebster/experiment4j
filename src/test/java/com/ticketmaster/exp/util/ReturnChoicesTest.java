@@ -130,4 +130,30 @@ public class ReturnChoicesTest {
         // THEN
         assertSame("control", choice.get());
     }
+
+    @Test
+    public void testCandidateWhenReturnsCandidateWhenSelectorIsTrue() throws Exception {
+
+        // GIVEN
+        Result<String> result = new Result<>("exp", instant, goodCandidate, goodControl);
+
+        // WHEN
+        Try<String> choice = ReturnChoices.<String>candidateWhen(Selectors.ALWAYS).apply(result);
+
+        // THEN
+        assertSame("candidate", choice.get());
+    }
+
+    @Test
+    public void testCandidateWhenReturnsControlWhenSelectorIsFalse() throws Exception {
+
+        // GIVEN
+        Result<String> result = new Result<>("exp", instant, goodCandidate, goodControl);
+
+        // WHEN
+        Try<String> choice = ReturnChoices.<String>candidateWhen(Selectors.NEVER).apply(result);
+
+        // THEN
+        assertSame("control", choice.get());
+    }
 }

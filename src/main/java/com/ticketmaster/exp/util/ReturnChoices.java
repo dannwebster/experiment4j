@@ -3,6 +3,7 @@ package com.ticketmaster.exp.util;
 import com.ticketmaster.exp.Result;
 import com.ticketmaster.exp.TrialType;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
 /**
@@ -15,6 +16,13 @@ public class ReturnChoices {
         return (result) -> TrialType.CANDIDATE.equals(type) ?
             result.getCandidateResult().getTryResult():
             result.getControlResult().getTryResult();
+    }
+
+
+    public static <T> Function<Result<T>, Try<T>> candidateWhen(BooleanSupplier candidateWhen) {
+        return (result) -> (candidateWhen.getAsBoolean()) ?
+                result.getCandidateResult().getTryResult() :
+                result.getControlResult().getTryResult();
     }
 
     public static <T> Function<Result<T>, Try<T>> alwaysControl() {
