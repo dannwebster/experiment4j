@@ -1,6 +1,7 @@
 package com.ticketmaster.exp;
 
-import com.ticketmaster.exp.publish.PrintStreamPublisher;
+import com.ticketmaster.exp.publish.MeasurerPublisher;
+import com.ticketmaster.exp.publish.PrintStreamMeasurer;
 import com.ticketmaster.exp.util.Assert;
 import com.ticketmaster.exp.util.Duple;
 import com.ticketmaster.exp.util.SameWhens;
@@ -80,7 +81,7 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
         BiFunction<M, M, Boolean> sameWhen = Objects::equals;
         BiFunction<Exception, Exception, Boolean> exceptionsSameWhen = SameWhens.classesMatch();
 
-        Publisher<T> publisher = PrintStreamPublisher.DEFAULT;
+        Publisher<T> publisher = MeasurerPublisher.DEFAULT;
 
         Clock clock = Clock.systemUTC();
 

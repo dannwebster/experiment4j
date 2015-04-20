@@ -3,31 +3,50 @@ package com.ticketmaster.exp.util;
 import java.time.Instant;
 import java.util.Random;
 import java.util.function.BooleanSupplier;
-import java.util.function.Supplier;
 
 /**
  *
  * @author dannwebster
  */
 public class Selectors {
-    public static class Percentage implements BooleanSupplier {
-        private final Random INTS = new Random(Instant.now().toEpochMilli());
-        private final int percentage;
+
+    public static class Permille implements BooleanSupplier {
+        private final Random ints = new Random(Instant.now().toEpochMilli());
+        private final int permille;
 
         @Override
         public boolean getAsBoolean() {
-            return INTS.nextInt(100) < percentage;
+            return ints.nextInt(1000) < permille;
         }
 
-        public Percentage(int percentage) {
-            this.percentage = percentage;
+        public Permille(int permille) {
+            Assert.between(permille, 0, 1000+1);
+            this.permille = permille;
+        }
+    }
+
+    public static class Percent implements BooleanSupplier {
+        private final Random ints = new Random(Instant.now().toEpochMilli());
+        private final int percent;
+
+        @Override
+        public boolean getAsBoolean() {
+            return ints.nextInt(100) < percent;
+        }
+
+        public Percent(int percent) {
+            Assert.between(percent, 0, 100+1);
+            this.percent = percent;
         }
     }
 
     Selectors() {}
 
-    public static BooleanSupplier percentage(int percent) {
-        return new Percentage(percent);
+    public static BooleanSupplier permille(int permille) {
+        return new Permille(permille);
+    }
+    public static BooleanSupplier percent(int percent) {
+        return new Percent(percent);
     }
     public static final BooleanSupplier NEVER = () -> false;
     public static final BooleanSupplier ALWAYS = () -> true;

@@ -15,7 +15,9 @@ public class SelectorsTest {
     public void testSelectors() throws Exception {
         assertEquals(true, Selectors.ALWAYS.getAsBoolean());
         assertEquals(false, Selectors.NEVER.getAsBoolean());
-        assertEquals(true, Selectors.percentage(100).getAsBoolean());
-        assertEquals(false, Selectors.percentage(0).getAsBoolean());
+        assertEquals(true, Selectors.percent(100).getAsBoolean());
+        assertEquals(false, Selectors.percent(0).getAsBoolean());
+        assertEquals(true, Selectors.permille(1000).getAsBoolean());
+        assertEquals(false, Selectors.permille(0).getAsBoolean());
     }
 }

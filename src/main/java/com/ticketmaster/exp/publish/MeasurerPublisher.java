@@ -2,48 +2,57 @@ package com.ticketmaster.exp.publish;
 
 import static com.ticketmaster.exp.TrialType.CANDIDATE;
 import static com.ticketmaster.exp.TrialType.CONTROL;
+import static com.ticketmaster.exp.TrialType.IMPROVEMENT;
 
 import com.ticketmaster.exp.MatchType;
 import com.ticketmaster.exp.Result;
 import com.ticketmaster.exp.Publisher;
 import com.ticketmaster.exp.util.Assert;
 
+import java.time.Duration;
+
 /**
  * Created by dannwebster on 10/12/14.
  */
 public class MeasurerPublisher<K> implements Publisher {
+    public static final MeasurerPublisher<String> DEFAULT = MeasurerPublisher.<String>builder()
+            .durationNamer(PatternDurationNamer.DEFAULT)
+            .matchCountNamer(PatternMatchCountNamer.DEFAULT)
+            .measurer(PrintStreamMeasurer.DEFAULT)
+            .build();
+
     private final Measurer measurer;
     private final MatchCountNamer matchCountNamer;
     private final DurationNamer durationNamer;
 
-    public static class Builder<T, K> {
-        private Measurer measurer;
+    public static class Builder<K> {
+        private Measurer measurer = PrintStreamMeasurer.DEFAULT;
         private MatchCountNamer<K> matchCountNamer;
         private DurationNamer<K> durationNamer;
 
         private Builder() {}
 
-        public Publisher<K> build() {
+        public MeasurerPublisher<K> build() {
             return new MeasurerPublisher<K>(measurer, matchCountNamer, durationNamer);
         }
 
-        public Builder<T, K> measurer(Measurer measurer) {
+        public Builder<K> measurer(Measurer measurer) {
             this.measurer = measurer;
             return this;
         }
 
-        public Builder<T, K> matchCountNamer(MatchCountNamer matchCountNamer) {
+        public Builder<K> matchCountNamer(MatchCountNamer matchCountNamer) {
             this.matchCountNamer = matchCountNamer;
             return this;
         }
 
-        public Builder<T, K> durationNamer(DurationNamer durationNamer) {
+        public Builder<K> durationNamer(DurationNamer durationNamer) {
             this.durationNamer = durationNamer;
             return this;
         }
 
     }
-    public static <T, K> Builder<T, K> builder() {
+    public static <K> Builder<K> builder() {
         return new Builder<>();
     }
 
@@ -60,7 +69,11 @@ public class MeasurerPublisher<K> implements Publisher {
     public void publish(MatchType matchType, Result payload) {
         String name = payload.getName();
         measurer.measureCount(matchCountNamer.name(name, matchType), 1);
-        measurer.measureDuration(durationNamer.name(name, CONTROL), payload.getControlResult().getDuration());
-        measurer.measureDuration(durationNamer.name(name, CANDIDATE), payload.getCandidateResult().getDuration());
+        Duration controlDuration = payload.getControlResult().getDuration();
+        Duration candidateDuration = payload.getCandidateResult().getDuration();
+        Duration difference = controlDuration.minus(candidateDuration);
+        measurer.measureDuration(durationNamer.name(name, CONTROL), controlDuration);
+        measurer.measureDuration(durationNamer.name(name, CANDIDATE), candidateDuration);
+        measurer.measureDuration(durationNamer.name(name, IMPROVEMENT), difference);
     }
 }
