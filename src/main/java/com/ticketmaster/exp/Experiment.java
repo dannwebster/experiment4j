@@ -39,6 +39,19 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
 
     private final Publisher<T> publisher;
 
+    public interface Builder<T, M, E extends Experiment<T, M>, B extends Builder<T, M, E, B>> extends Supplier<Experiment<T, M>>{
+        public Experiment<T, M> get();
+        public B simplifiedBy(Function<T, M> simplifier);
+        public B sameWhen(BiFunction<M, M, Boolean> sameWhen);
+        public B exceptionsSameWhen(BiFunction<Exception, Exception, Boolean> sameWhen);
+        public B timedBy(Clock clock);
+        public B publishedBy(Publisher<T> publisher);
+        public B returnCandidateWhen(BooleanSupplier returnCandidateWhen);
+        public B doExperimentWhen(BooleanSupplier doExperimentWhen);
+        public B control(Callable<T> control);
+        public B candidate(Callable<T> candidate);
+    }
+
     public static class Simple<V> extends Experiment<V, V> {
         public Simple(String name,
                       Callable<V> control, Callable<V> candidate,
@@ -55,33 +68,8 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
         }
     }
 
-    public static class SimpleBuilder<V> extends BaseBuilder<V, V, Simple<V>, SimpleBuilder<V>> {
-        public SimpleBuilder(String name) {
-            super(name);
-            super.simplifiedBy(a -> a);
-        }
-
-        public Simple<V> build() {
-            return new Simple<>(name, control, candidate,
-                    returnCandidateWhen, doExperimentWhen,
-                    simplifier, sameWhen, exceptionsSameWhen,
-                    publisher, clock);
-        }
-    }
-    public static class Builder<T, M> extends BaseBuilder<T, M, Experiment<T, M>, Builder<T, M>> {
-
-        public Builder(String name) {
-            super(name);
-        }
-
-        public Experiment<T, M> build() {
-            return new Experiment<>(name, control, candidate,
-                    returnCandidateWhen, doExperimentWhen, simplifier,
-                    sameWhen, exceptionsSameWhen, publisher, clock);
-        }
-    }
-
-    public static abstract class BaseBuilder<T, M, E extends Callable<T>, B extends BaseBuilder<T, M, E, B>> {
+    public static abstract class BaseBuilder<T, M, E extends Experiment<T, M>, B extends Builder<T, M, E, B>>
+            implements Builder<T, M, E , B> {
         String name;
         Callable<T> control;
         Callable<T> candidate;
@@ -100,7 +88,7 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
             this.name = name;
         }
 
-        public abstract E build();
+        public abstract E get();
 
         private B me() {
             return (B) this;
@@ -153,11 +141,38 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
 
     }
 
+    public static class SimpleBuilder<V> extends BaseBuilder<V, V, Simple<V>, SimpleBuilder<V>> {
+        public SimpleBuilder(String name) {
+            super(name);
+            super.simplifiedBy(a -> a);
+        }
+
+        @Override
+        public Simple<V> get() {
+            return new Simple<>(name, control, candidate,
+                    returnCandidateWhen, doExperimentWhen,
+                    simplifier, sameWhen, exceptionsSameWhen,
+                    publisher, clock);
+        }
+    }
+    public static class ExperimentBuilder<T, M> extends BaseBuilder<T, M, Experiment<T, M>, ExperimentBuilder<T, M>> {
+
+        public ExperimentBuilder(String name) {
+            super(name);
+        }
+
+        public Experiment<T, M> get() {
+            return new Experiment<>(name, control, candidate,
+                    returnCandidateWhen, doExperimentWhen, simplifier,
+                    sameWhen, exceptionsSameWhen, publisher, clock);
+        }
+    }
+
     public static <T> SimpleBuilder<T> simple(String name) {
         return new SimpleBuilder<>(name);
     }
-    public static <T, M> Builder<T, M> named(String name) {
-        return new Builder<>(name);
+    public static <T, M> ExperimentBuilder<T, M> named(String name) {
+        return new ExperimentBuilder<>(name);
     }
 
     Experiment(

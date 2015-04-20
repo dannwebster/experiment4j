@@ -6,6 +6,7 @@ import sun.security.pkcs.SigningCertificateInfo;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
@@ -28,8 +29,8 @@ public class Science {
                 .call();
     }
 
-    public <T, M> Experiment<T, M> experiment(String name, Supplier<Experiment<T, M>> experimentFactory) {
-        return cache.computeIfAbsent(name, key -> experimentFactory.get() );
+    public <T, M> Experiment<T, M> experiment(String name, Supplier<? extends Experiment> experimentBuilder) {
+        return cache.computeIfAbsent(name, (k) -> experimentBuilder.get() );
     }
 
     public <T, M> Optional<Experiment<T, M>> getExperiment(String name) {

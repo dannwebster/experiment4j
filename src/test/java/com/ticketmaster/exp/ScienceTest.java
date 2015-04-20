@@ -22,10 +22,25 @@ public class ScienceTest {
     public void setUp() throws Exception {
         assertEquals(0, Science.science().getExperimentCount());
     }
+
     @After
     public void tearDown() throws Exception {
         Science.science().getClearExperiments();
         assertEquals(0, Science.science().getExperimentCount());
+    }
+
+    public Experiment<String, String> buildExperiment(Supplier callTracker) throws Exception{
+        return Science.science().experiment(
+                "my-experiment",
+                () -> {
+                    callTracker.get();
+                    return Experiment
+                        .simple("my-experiment")
+                        .control(() -> "foo")
+                        .candidate(() -> "candidate")
+                        .get();
+            }
+        );
     }
 
     @Test
@@ -38,12 +53,10 @@ public class ScienceTest {
                 () -> {
                     callTracker.get();
                     return Experiment
-                            .simple("my-experiment")
-                            .control(() -> "foo")
-                            .candidate(() -> "candidate")
-                            .build();
+                        .named("my-experiment")
+                        .control(() -> "foo")
+                        .candidate(() -> "candidate").get();
                 }
-
         ).call();
 
         // WHEN
@@ -54,21 +67,6 @@ public class ScienceTest {
         assertEquals("foo", str);
         verify(callTracker, times(1)).get();
 
-    }
-
-    public Experiment<String, String> buildExperiment(Supplier callTracker) throws Exception{
-        return Science.science().experiment(
-                "my-experiment",
-                () -> {
-                    callTracker.get();
-                    return Experiment
-                            .<String>simple("my-experiment")
-                            .control(() -> "foo")
-                            .candidate(() -> "candidate")
-                            .build();
-                }
-
-        );
     }
 
     @Test
@@ -126,20 +124,13 @@ public class ScienceTest {
     @Test
     public void testDoExperimentWithNullReturnShouldReturnNull() throws Exception {
 
-        // EXPECT
-
         // GIVEN
         Science.science().experiment(
                 "my-experiment",
-                () -> {
-                    callTracker.get();
-                    return Experiment
-                            .<String>simple("my-experiment")
-                            .control(() -> (String) null)
-                            .candidate(() -> "candidate")
-                            .build();
-                }
-
+                Experiment
+                    .<String>simple("my-experiment")
+                    .control(() -> (String) null)
+                    .candidate(() -> "candidate")
         );
 
         // WHEN

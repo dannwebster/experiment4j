@@ -50,7 +50,7 @@ public class ExperimentTest {
                 .candidate(candidate)
                 .timedBy(c)
                 .publishedBy(p)
-                .build();
+                .get();
 
         // WHEN
         String s = e.call();
@@ -73,7 +73,7 @@ public class ExperimentTest {
                 .timedBy(c)
                 .simplifiedBy(a -> a)
                 .publishedBy(p)
-                .build();
+                .get();
 
         // WHEN
         String s = e.call();
@@ -96,7 +96,7 @@ public class ExperimentTest {
                 .simplifiedBy(a -> a)
                 .returnCandidateWhen(Selectors.ALWAYS)
                 .publishedBy(p)
-                .build();
+                .get();
 
         // WHEN
         String s = e.call();
@@ -119,7 +119,7 @@ public class ExperimentTest {
                 .simplifiedBy(a -> a)
                 .doExperimentWhen(Selectors.NEVER)
                 .publishedBy(p)
-                .build();
+                .get();
 
         // WHEN
         String s = e.call();
@@ -147,7 +147,7 @@ public class ExperimentTest {
                 .simplifiedBy(a -> a)
                 .doExperimentWhen(Selectors.NEVER)
                 .publishedBy(p)
-                .build();
+                .get();
 
         // EXPECT
         ex.expect(IllegalArgumentException.class);
@@ -171,7 +171,7 @@ public class ExperimentTest {
                 .sameWhen(Objects::equals)
                 .exceptionsSameWhen(SameWhens.classesMatch())
                 .publishedBy(p)
-                .build();
+                .get();
 
         // WHEN
         String s = e.call();
