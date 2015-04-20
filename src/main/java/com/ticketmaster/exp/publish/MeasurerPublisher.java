@@ -2,6 +2,8 @@ package com.ticketmaster.exp.publish;
 
 import static com.ticketmaster.exp.TrialType.CANDIDATE;
 import static com.ticketmaster.exp.TrialType.CONTROL;
+
+import com.ticketmaster.exp.MatchType;
 import com.ticketmaster.exp.Result;
 import com.ticketmaster.exp.Publisher;
 import com.ticketmaster.exp.util.Assert;
@@ -55,9 +57,9 @@ public class MeasurerPublisher<K> implements Publisher {
     }
 
     @Override
-    public void publish(boolean outputMatches, Result payload) {
+    public void publish(MatchType matchType, Result payload) {
         String name = payload.getName();
-        measurer.measureCount(matchCountNamer.name(name, outputMatches), 1);
+        measurer.measureCount(matchCountNamer.name(name, matchType), 1);
         measurer.measureDuration(durationNamer.name(name, CONTROL), payload.getControlResult().getDuration());
         measurer.measureDuration(durationNamer.name(name, CANDIDATE), payload.getCandidateResult().getDuration());
     }

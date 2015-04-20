@@ -1,5 +1,6 @@
 package com.ticketmaster.exp.publish;
 
+import com.ticketmaster.exp.MatchType;
 import com.ticketmaster.exp.Publisher;
 
 import java.time.Duration;
@@ -43,12 +44,12 @@ public class PublisherTest {
                 .measurer(m)
                 .build();
 
-        publisher.publish(true, result);
+        publisher.publish(MatchType.MATCH, result);
 
         // THEN
-        verify(m, times(1)).measureCount("exp.experiment.match.true.count", 1);
-        verify(m, times(1)).measureDuration("exp.experiment.trial.type.CANDIDATE.dur", candidateD);
-        verify(m, times(1)).measureDuration("exp.experiment.trial.type.CONTROL.dur", controlD);
+        verify(m, times(1)).measureCount("exp.experiment.match.type.match.count", 1);
+        verify(m, times(1)).measureDuration("exp.experiment.trial.type.candidate.dur", candidateD);
+        verify(m, times(1)).measureDuration("exp.experiment.trial.type.control.dur", controlD);
     }
 
 }

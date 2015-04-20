@@ -1,6 +1,7 @@
 package com.ticketmaster.exp;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
@@ -8,6 +9,7 @@ import java.util.PrimitiveIterator;
 import java.util.concurrent.Callable;
 import java.util.stream.IntStream;
 
+import com.ticketmaster.exp.util.SameWhens;
 import com.ticketmaster.exp.util.Selectors;
 import org.junit.Before;
 import org.junit.Rule;
@@ -55,7 +57,7 @@ public class ExperimentTest {
 
         // THEN
         assertEquals("control", s);
-        verify(p, times(1)).publish(Matchers.eq(false), Matchers.any(Result.class));
+        verify(p, times(1)).publish(Matchers.eq(MatchType.MISMATCH), Matchers.any(Result.class));
         verify(candidate, times(1)).call();
         verify(control, times(1)).call();
     }
@@ -78,7 +80,7 @@ public class ExperimentTest {
 
         // THEN
         assertEquals("control", s);
-        verify(p, times(1)).publish(Matchers.eq(true), Matchers.any(Result.class));
+        verify(p, times(1)).publish(Matchers.eq(MatchType.MATCH), Matchers.any(Result.class));
         verify(candidate, times(1)).call();
         verify(control, times(1)).call();
     }
@@ -101,7 +103,7 @@ public class ExperimentTest {
 
         // THEN
         assertEquals("candidate", s);
-        verify(p, times(1)).publish(Matchers.eq(false), Matchers.any(Result.class));
+        verify(p, times(1)).publish(Matchers.eq(MatchType.MISMATCH), Matchers.any(Result.class));
         verify(candidate, times(1)).call();
         verify(control, times(1)).call();
     }
@@ -126,7 +128,7 @@ public class ExperimentTest {
         assertEquals("control", s);
         verify(control, times(1)).call();
         verify(candidate, never()).call();
-        verify(p, never()).publish(anyBoolean(), any());
+        verify(p, never()).publish(any(), any());
     }
 
     @Rule
@@ -167,6 +169,7 @@ public class ExperimentTest {
                 .simplifiedBy(a -> a)
                 .doExperimentWhen(Selectors.NEVER)
                 .sameWhen(Objects::equals)
+                .exceptionsSameWhen(SameWhens.classesMatch())
                 .publishedBy(p)
                 .build();
 
@@ -177,6 +180,6 @@ public class ExperimentTest {
         assertEquals("control", s);
         verify(control, times(1)).call();
         verify(candidate, never()).call();
-        verify(p, never()).publish(anyBoolean(), any());
+        verify(p, never()).publish(any(), any());
     }
 }

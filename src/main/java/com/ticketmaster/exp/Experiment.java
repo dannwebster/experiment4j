@@ -3,6 +3,7 @@ package com.ticketmaster.exp;
 import com.ticketmaster.exp.publish.PrintStreamPublisher;
 import com.ticketmaster.exp.util.Assert;
 import com.ticketmaster.exp.util.Duple;
+import com.ticketmaster.exp.util.SameWhens;
 import com.ticketmaster.exp.util.Try;
 
 import java.time.Clock;
@@ -33,16 +34,24 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
     private final Clock clock;
 
     private final BiFunction<M, M, Boolean> sameWhen;
+    private final BiFunction<Exception, Exception, Boolean> exceptionsSameWhen;
     private final Function<T, M> simplifier;
 
     private final Publisher<T> publisher;
 
     public static class Simple<V> extends Experiment<V, V> {
-        public Simple(String name, Callable<V> control, Callable<V> candidate, BooleanSupplier returnCandidateWhen,
-                      BooleanSupplier doExperimentWhen, Function<V, V> simplifier, BiFunction<V, V, Boolean> sameWhen,
-                      Publisher<V> publisher, Clock clock) {
-            super(name, control, candidate, returnCandidateWhen, doExperimentWhen, simplifier, sameWhen, publisher,
-                    clock);
+        public Simple(String name,
+                      Callable<V> control, Callable<V> candidate,
+                      BooleanSupplier returnCandidateWhen,
+                      BooleanSupplier doExperimentWhen,
+                      Function<V, V> simplifier,
+                      BiFunction<V, V, Boolean> sameWhen,
+                      BiFunction<Exception, Exception, Boolean> exceptionsSameWhen,
+                      Publisher<V> publisher,
+                      Clock clock) {
+            super(name, control, candidate, returnCandidateWhen,
+                    doExperimentWhen, simplifier, sameWhen, exceptionsSameWhen,
+                    publisher, clock);
         }
     }
 
@@ -53,7 +62,10 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
         }
 
         public Simple<V> build() {
-            return new Simple<>(name, control, candidate, returnCandidateWhen, doExperimentWhen, simplifier, sameWhen, publisher, clock);
+            return new Simple<>(name, control, candidate,
+                    returnCandidateWhen, doExperimentWhen,
+                    simplifier, sameWhen, exceptionsSameWhen,
+                    publisher, clock);
         }
     }
     public static class Builder<T, M> extends BaseBuilder<T, M, Experiment<T, M>, Builder<T, M>> {
@@ -63,7 +75,9 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
         }
 
         public Experiment<T, M> build() {
-            return new Experiment<>(name, control, candidate, returnCandidateWhen, doExperimentWhen, simplifier, sameWhen, publisher, clock);
+            return new Experiment<>(name, control, candidate,
+                    returnCandidateWhen, doExperimentWhen, simplifier,
+                    sameWhen, exceptionsSameWhen, publisher, clock);
         }
     }
 
@@ -76,6 +90,7 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
 
         Function<T, M> simplifier;
         BiFunction<M, M, Boolean> sameWhen = Objects::equals;
+        BiFunction<Exception, Exception, Boolean> exceptionsSameWhen = SameWhens.classesMatch();
 
         Publisher<T> publisher = PrintStreamPublisher.DEFAULT;
 
@@ -98,6 +113,11 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
 
         public B sameWhen(BiFunction<M, M, Boolean> sameWhen) {
             this.sameWhen = sameWhen;
+            return me();
+        }
+
+        public B exceptionsSameWhen(BiFunction<Exception, Exception, Boolean> sameWhen) {
+            this.exceptionsSameWhen = exceptionsSameWhen;
             return me();
         }
 
@@ -148,6 +168,7 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
             BooleanSupplier doExperimentWhen,
             Function<T, M> simplifier,
             BiFunction<M, M, Boolean> sameWhen,
+            BiFunction<Exception, Exception, Boolean> exceptionsSameWhen,
             Publisher<T> publisher,
             Clock clock) {
 
@@ -157,6 +178,7 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
         Assert.notNull(returnCandidateWhen, "returnCandidateWhen must be non-null");
         Assert.notNull(doExperimentWhen, "doExperimentWhen must be non-null");
         Assert.notNull(sameWhen, "sameWhen must be non-null");
+        Assert.notNull(exceptionsSameWhen, "exceptionsSameWhen must be non-null");
         Assert.notNull(simplifier, "simplifier must be non-null");
         Assert.notNull(publisher, "publisher must be non-null");
         Assert.notNull(clock, "clock must be non-null");
@@ -169,6 +191,7 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
         this.returnCandidateWhen = returnCandidateWhen;
         this.doExperimentWhen = doExperimentWhen;
         this.sameWhen = sameWhen;
+        this.exceptionsSameWhen = exceptionsSameWhen;
         this.simplifier = simplifier;
         this.publisher = publisher;
         this.clock = clock;
@@ -202,8 +225,8 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
                     results.get(CANDIDATE).get(0),
                     results.get(CONTROL).get(0));
 
-            boolean outputMatches = determineMatch(result);
-            publisher.publish(outputMatches, result);
+            MatchType matchType = determineMatch(result);
+            publisher.publish(matchType, result);
         } else {
             TrialResult<T> trialResult = controlThenCandidate.getE1().get();
              result = new Result<>(
@@ -215,18 +238,8 @@ public class Experiment<T, M> implements Supplier<Result<T>>, Callable<T> {
         return result;
     }
 
-    public boolean determineMatch(Result<T> result) {
-        List<M> m = Arrays
-                .asList(result.getCandidateResult(), result.getControlResult())
-                .stream()
-                .map(TrialResult::getTryResult)
-                .filter(Try::isSuccess)
-                .map(Try::value)
-                .map(Optional::get)
-                .map( t -> simplifier.apply(t) )
-                .collect(Collectors.toList());
-
-        return m.size() == 2 && sameWhen.apply(m.get(0), m.get(1));
+    public MatchType determineMatch(Result<T> result) {
+        return result.determineMatch(this.simplifier, this.sameWhen, this.exceptionsSameWhen);
     }
 
     final TrialResult<T> observe(TrialType trialType, Callable<T> callable) {

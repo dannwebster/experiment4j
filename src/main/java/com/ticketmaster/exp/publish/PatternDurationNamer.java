@@ -20,6 +20,6 @@ public class PatternDurationNamer implements DurationNamer<String> {
 
     @Override
     public String name(String experimentName, TrialType trialType) {
-        return String.format(pattern, experimentName, trialType.toString());
+        return String.format(pattern, experimentName, trialType.name().toLowerCase());
     }
 }

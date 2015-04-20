@@ -55,4 +55,5 @@ public class Try<T> implements Callable<T>{
     public boolean isSuccess() {
         return v.isPresent();
     }
+
 }

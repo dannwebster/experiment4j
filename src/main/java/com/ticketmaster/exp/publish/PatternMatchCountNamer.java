@@ -1,10 +1,12 @@
 package com.ticketmaster.exp.publish;
 
+import com.ticketmaster.exp.MatchType;
+
 /**
  * Created by dannwebster on 4/18/15.
  */
 public class PatternMatchCountNamer implements MatchCountNamer<String>{
-    public static final String DEFAULT_PATTERN = "exp.%s.match.%s.count";
+    public static final String DEFAULT_PATTERN = "exp.%s.match.type.%s.count";
     public static final PatternMatchCountNamer DEFAULT = from(DEFAULT_PATTERN);
     private final String pattern;
     private final String trueString;
@@ -25,7 +27,7 @@ public class PatternMatchCountNamer implements MatchCountNamer<String>{
     }
 
     @Override
-    public String name(String experimentName, boolean matches) {
-        return String.format(pattern, experimentName, matches);
+    public String name(String experimentName, MatchType matchType) {
+        return String.format(pattern, experimentName, matchType.name().toLowerCase());
     }
 }
