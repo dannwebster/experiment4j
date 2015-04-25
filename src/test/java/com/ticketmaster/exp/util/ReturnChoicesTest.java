@@ -138,7 +138,7 @@ public class ReturnChoicesTest {
         Result<String> result = new Result<>("exp", instant, goodCandidate, goodControl);
 
         // WHEN
-        Try<String> choice = ReturnChoices.<String>candidateWhen(Selectors.ALWAYS).apply(result);
+        Try<String> choice = ReturnChoices.<String>candidateWhen(Selectors.always()).apply(result);
 
         // THEN
         assertSame("candidate", choice.get());
@@ -151,7 +151,7 @@ public class ReturnChoicesTest {
         Result<String> result = new Result<>("exp", instant, goodCandidate, goodControl);
 
         // WHEN
-        Try<String> choice = ReturnChoices.<String>candidateWhen(Selectors.NEVER).apply(result);
+        Try<String> choice = ReturnChoices.<String>candidateWhen(Selectors.never()).apply(result);
 
         // THEN
         assertSame("control", choice.get());

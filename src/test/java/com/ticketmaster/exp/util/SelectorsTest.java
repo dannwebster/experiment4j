@@ -1,6 +1,10 @@
 package com.ticketmaster.exp.util;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+
+import java.util.function.BooleanSupplier;
 
 import static org.junit.Assert.assertEquals;
 
@@ -11,13 +15,90 @@ public class SelectorsTest {
     // removes noise from coverage results
     Selectors s = new Selectors();
 
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
+
     @Test
-    public void testSelectors() throws Exception {
-        assertEquals(true, Selectors.ALWAYS.getAsBoolean());
-        assertEquals(false, Selectors.NEVER.getAsBoolean());
-        assertEquals(true, Selectors.percent(100).getAsBoolean());
-        assertEquals(false, Selectors.percent(0).getAsBoolean());
-        assertEquals(true, Selectors.permille(1000).getAsBoolean());
-        assertEquals(false, Selectors.permille(0).getAsBoolean());
+    public void testPermilleOver1000ShouldThrowException() throws Exception {
+        expectedException.expect(IllegalArgumentException.class);
+        expectedException.expectMessage("value 1001 is not between bounds of 0 (inclusive) and 1001 (exclusive)");
+        Selectors.permille(1001);
+    }
+
+    @Test
+    public void testPermilleUnder0ShouldThrowException() throws Exception {
+        expectedException.expect(IllegalArgumentException.class);
+        expectedException.expectMessage("value -1 is not between bounds of 0 (inclusive) and 1001 (exclusive)");
+        Selectors.permille(-1);
+    }
+
+    @Test
+    public void testPercentOver100ShouldThrowException() throws Exception {
+        expectedException.expect(IllegalArgumentException.class);
+        expectedException.expectMessage("value 101 is not between bounds of 0 (inclusive) and 101 (exclusive)");
+        Selectors.percent(101);
+    }
+
+    @Test
+    public void testPercentUnder0ShouldThrowException() throws Exception {
+        expectedException.expect(IllegalArgumentException.class);
+        expectedException.expectMessage("value -1 is not between bounds of 0 (inclusive) and 101 (exclusive)");
+        Selectors.percent(-1);
+    }
+
+    @Test
+    public void testConstantThresholds() throws Exception {
+        assertEquals(true, Selectors.always().getAsBoolean());
+        assertEquals(false, Selectors.never().getAsBoolean());
+    }
+
+    @Test
+    public void testPercentAlwaysReturnTrueForMaxThreshold() throws Exception {
+        // Given
+        BooleanSupplier percent = Selectors.percent(100);
+
+        // When
+        boolean pass = percent.getAsBoolean();
+
+        // Then
+        assertEquals(true, pass);
+
+    }
+
+    @Test
+    public void testPermilleAlwaysReturnTrueForMaxThreshold() throws Exception {
+        // Given
+        BooleanSupplier permille = Selectors.permille(1000);
+
+        // When
+        boolean pass = permille.getAsBoolean();
+
+        // Then
+        assertEquals(true, pass);
+
+    }
+
+    @Test
+    public void testPercentNeverReturnTrueForThreshold0() throws Exception {
+        // Given
+        BooleanSupplier percent = Selectors.percent(0);
+
+        // When
+        boolean pass = percent.getAsBoolean();
+
+        // Then
+        assertEquals(false, pass);
+    }
+
+    @Test
+    public void testPermilleNeverReturnTrueForThreshold0() throws Exception {
+        // Given
+        BooleanSupplier permille = Selectors.permille(0);
+
+        // When
+        boolean pass = permille.getAsBoolean();
+
+        // Then
+        assertEquals(false, pass);
     }
 }

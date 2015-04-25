@@ -120,7 +120,7 @@ public class ExperimentTest {
                 .candidate(candidate)
                 .timedBy(c)
                 .simplifiedBy(a -> a)
-                .doExperimentWhen(Selectors.NEVER)
+                .doExperimentWhen(Selectors.never())
                 .publishedBy(p)
                 .get();
 
@@ -148,7 +148,7 @@ public class ExperimentTest {
                 .candidate(candidate)
                 .timedBy(c)
                 .simplifiedBy(a -> a)
-                .doExperimentWhen(Selectors.NEVER)
+                .doExperimentWhen(Selectors.never())
                 .publishedBy(p)
                 .get();
 
@@ -170,7 +170,7 @@ public class ExperimentTest {
                 .control(control)
                 .candidate(candidate)
                 .simplifiedBy(a -> a)
-                .doExperimentWhen(Selectors.NEVER)
+                .doExperimentWhen(Selectors.never())
                 .sameWhen(Objects::equals)
                 .exceptionsSameWhen(SameWhens.classesMatch())
                 .publishedBy(p)

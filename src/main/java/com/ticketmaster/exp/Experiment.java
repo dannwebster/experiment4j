@@ -17,8 +17,8 @@ import java.util.stream.Collectors;
 
 import static com.ticketmaster.exp.TrialType.CANDIDATE;
 import static com.ticketmaster.exp.TrialType.CONTROL;
-import static com.ticketmaster.exp.util.Selectors.ALWAYS;
-import static com.ticketmaster.exp.util.Selectors.NEVER;
+import static com.ticketmaster.exp.util.Selectors.never;
+import static com.ticketmaster.exp.util.Selectors.always;
 
 /**
  * Created by dannwebster on 10/12/14.
@@ -73,7 +73,7 @@ public class Experiment<I, O, M> implements Function<I, O> {
         Function<I, O> control;
         Function<I, O> candidate;
         Function<Result<O>, Try<O>> returnChoice = ReturnChoices.alwaysControl();
-        BooleanSupplier doExperimentWhen = ALWAYS;
+        BooleanSupplier doExperimentWhen = always();
 
         Function<O, M> simplifier;
         BiFunction<M, M, Boolean> sameWhen = Objects::equals;
