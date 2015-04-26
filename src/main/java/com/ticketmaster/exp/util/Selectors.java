@@ -100,9 +100,13 @@ public class Selectors {
         return new Per(new ModInt(thresholdSupplier, 1000), new ModInt(() -> objectSupplier.get().hashCode(), 1000));
     }
     public static BooleanSupplier percentOfObjectHash(int percent, Supplier objectSupplier) {
-        return new Per(() -> percent, new ModInt(() -> objectSupplier.get().hashCode(), 100));
+        Assert.between(percent, 0, 100+1);
+        int finalPercent = percent == 100 ? 99 : percent;
+        return dynamicPercentOfObjectHash(() -> finalPercent, objectSupplier);
     }
     public static BooleanSupplier permilleOfObjectHash(int permille, Supplier objectSupplier) {
-        return new Per(() -> permille, new ModInt(() -> objectSupplier.get().hashCode(), 1000));
+        Assert.between(permille, 0, 1000+1);
+        int finalPermille = permille == 1000 ? 999 : permille;
+        return dynamicPermilleOfObjectHash(() -> finalPermille, objectSupplier);
     }
 }

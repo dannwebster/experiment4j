@@ -101,4 +101,78 @@ public class SelectorsTest {
         // Then
         assertEquals(false, pass);
     }
+
+    @Test
+    public void testPercentOfObjectHashWithMinPercentIsNeverTrue() throws Exception {
+
+        // GIVEN
+        Object o = new Object() {
+            public int hashCode() {
+                return 100;
+            }
+        };
+        BooleanSupplier percent = Selectors.percentOfObjectHash(0, () -> o);
+
+        // WHEN
+        boolean pass = percent.getAsBoolean();
+
+
+        // THEN
+        assertEquals(false, pass);
+    }
+    @Test
+    public void testPercentOfObjectHashWithMaxPercentIsAlwaysTrue() throws Exception {
+        
+        // GIVEN
+        Object o = new Object() {
+            public int hashCode() {
+                return 100;
+            }
+        };
+        BooleanSupplier percent = Selectors.percentOfObjectHash(100, () -> o);
+        
+        // WHEN
+        boolean pass = percent.getAsBoolean();
+
+        
+        // THEN
+        assertEquals(true, pass);
+    }
+
+    @Test
+    public void testPermilleOfObjectHashWithMinPermilleIsNeverTrue() throws Exception {
+
+        // GIVEN
+        Object o = new Object() {
+            public int hashCode() {
+                return 1000;
+            }
+        };
+        BooleanSupplier permille = Selectors.permilleOfObjectHash(0, () -> o);
+
+        // WHEN
+        boolean pass = permille.getAsBoolean();
+
+
+        // THEN
+        assertEquals(false, pass);
+    }
+    @Test
+    public void testPermilleOfObjectHashWithMaxPermilleIsAlwaysTrue() throws Exception {
+
+        // GIVEN
+        Object o = new Object() {
+            public int hashCode() {
+                return 1000;
+            }
+        };
+        BooleanSupplier permille = Selectors.permilleOfObjectHash(1000, () -> o);
+
+        // WHEN
+        boolean pass = permille.getAsBoolean();
+
+
+        // THEN
+        assertEquals(true, pass);
+    }
 }
