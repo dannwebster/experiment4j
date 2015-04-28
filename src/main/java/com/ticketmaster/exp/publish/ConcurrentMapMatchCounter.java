@@ -15,7 +15,7 @@ public class ConcurrentMapMatchCounter<K> implements MatchCounter<K>{
     }
 
     public int getAndIncrement(K matchKey) {
-        int matchCount = counts.compute(matchKey, (k, v) -> v == null ? 1 : v++ );
+        int matchCount = counts.compute(matchKey, (k, v) -> v == null ? 1 : ++v );
         return matchCount;
     }
 
