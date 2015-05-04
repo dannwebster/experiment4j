@@ -25,7 +25,7 @@ public class Selectors {
 
         @Override
         public int getAsInt() {
-            return supplier.getAsInt() % denominator;
+            return Math.abs(supplier.getAsInt()) % denominator;
         }
     }
 
@@ -34,7 +34,7 @@ public class Selectors {
 
         @Override
         public int getAsInt() {
-            return Math.abs(ints.nextInt());
+            return ints.nextInt();
         }
     }
 
