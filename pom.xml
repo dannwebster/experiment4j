@@ -28,6 +28,10 @@
     <metrics.version>3.0.2</metrics.version>
     <javaslang.version>1.2.0</javaslang.version>
   </properties>
+  <scm>
+    <connection>scm:git:git://git.tm.tmcs/tap/experiments4j.git</connection>
+    <developerConnection>scm:git:ssh://git@git.tm.tmcs/tap/experiments4j.git</developerConnection>
+  </scm>
 
   <dependencies>
     <dependency>
@@ -120,4 +124,23 @@
       </plugin>
     </plugins>
   </build>
+
+  <distributionManagement>
+    <repository>
+      <id>releases</id>
+      <name>TAP Release Repository</name>
+      <url>http://maven.platform.tm.tmcs:8081/nexus/content/repositories/releases</url>
+    </repository>
+    <snapshotRepository>
+      <id>snapshots</id>
+      <name>TAP Snapshot Repository</name>
+      <url>http://maven.platform.tm.tmcs:8081/nexus/content/repositories/snapshots</url>
+    </snapshotRepository>
+    <!--
+    <site>
+        <id>cis.platform.tm.tmcs</id>
+        <url>file:/www/docs/jetson-tmss-api/</url>
+    </site>
+    -->
+  </distributionManagement>
 </project>
