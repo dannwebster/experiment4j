@@ -11,7 +11,7 @@ I read ["Move Fast, Break Nothing"](http://zachholman.com/talk/move-fast-break-n
 really wanted the capabilities of Github's [Science framework](https://github.com/github/dat-science) in Java 8.
 
 I work with a large production system where we are actively trying to replace a bunch of legacy code with
-newer implementations. Are core goals are to: 
+newer implementations. Our core goals are to: 
 * Improve performance
 * Maintain backwards compatibility
 
