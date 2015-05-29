@@ -14,6 +14,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.ticketmaster.exp.TrialType.CANDIDATE;
 import static com.ticketmaster.exp.TrialType.CONTROL;
@@ -29,6 +30,7 @@ public class Experiment<I, O, M> implements Function<I, O> {
     private final Duple<Function<I, TrialResult<O>>> controlThenCandidate;
     private final Function<Result<O>, Try<O>> returnChoice;
     private final BooleanSupplier doExperimentWhen;
+    private final BooleanSupplier doSeriallyWhen;
     private final Clock clock;
 
     private final BiFunction<M, M, Boolean> sameWhen;
@@ -46,6 +48,7 @@ public class Experiment<I, O, M> implements Function<I, O> {
         public B publishedBy(Publisher<O> publisher);
         public B returnChoice(Function<Result<O>, Try<O>> returnChoice);
         public B doExperimentWhen(BooleanSupplier doExperimentWhen);
+        public B doSeriallyWhen(BooleanSupplier doSeriallyWhen);
         public B control(Function<I, O> control);
         public B candidate(Function<I, O> candidate);
     }
@@ -56,13 +59,14 @@ public class Experiment<I, O, M> implements Function<I, O> {
                       Function<I, O> candidate,
                       Function<Result<O>, Try<O>> returnChoice,
                       BooleanSupplier doExperimentWhen,
+                      BooleanSupplier doSeriallyWhen,
                       Function<O, O> simplifier,
                       BiFunction<O, O, Boolean> sameWhen,
                       BiFunction<Exception, Exception, Boolean> exceptionsSameWhen,
                       Publisher<O> publisher,
                       Clock clock) {
             super(name, control, candidate, returnChoice,
-                    doExperimentWhen, simplifier, sameWhen, exceptionsSameWhen,
+                    doExperimentWhen, doSeriallyWhen, simplifier, sameWhen, exceptionsSameWhen,
                     publisher, clock);
         }
     }
@@ -74,6 +78,7 @@ public class Experiment<I, O, M> implements Function<I, O> {
         Function<I, O> candidate;
         Function<Result<O>, Try<O>> returnChoice = ReturnChoices.alwaysControl();
         BooleanSupplier doExperimentWhen = always();
+        BooleanSupplier doSeriallyWhen = never();
 
         Function<O, M> simplifier;
         BiFunction<M, M, Boolean> sameWhen = Objects::equals;
@@ -138,6 +143,11 @@ public class Experiment<I, O, M> implements Function<I, O> {
             return me();
         }
 
+        public B doSeriallyWhen(BooleanSupplier doSeriallyWhen) {
+            this.doSeriallyWhen = doSeriallyWhen;
+            return me();
+        }
+
     }
 
     public static class SimpleBuilder<I, O> extends BaseBuilder<I, O, O, Simple<I, O>, SimpleBuilder<I, O>> {
@@ -149,7 +159,7 @@ public class Experiment<I, O, M> implements Function<I, O> {
         @Override
         public Simple<I, O> get() {
             return new Simple<>(name, control, candidate,
-                    returnChoice, doExperimentWhen,
+                    returnChoice, doExperimentWhen, doSeriallyWhen,
                     simplifier, sameWhen, exceptionsSameWhen,
                     publisher, clock);
         }
@@ -162,7 +172,7 @@ public class Experiment<I, O, M> implements Function<I, O> {
 
         public Experiment<I, O, M> get() {
             return new Experiment<>(name, control, candidate,
-                    returnChoice, doExperimentWhen, simplifier,
+                    returnChoice, doExperimentWhen, doSeriallyWhen, simplifier,
                     sameWhen, exceptionsSameWhen, publisher, clock);
         }
     }
@@ -180,6 +190,7 @@ public class Experiment<I, O, M> implements Function<I, O> {
             Function<I, O> candidate,
             Function<Result<O>, Try<O>> returnChoice,
             BooleanSupplier doExperimentWhen,
+            BooleanSupplier doSeriallyWhen,
             Function<O, M> simplifier,
             BiFunction<M, M, Boolean> sameWhen,
             BiFunction<Exception, Exception, Boolean> exceptionsSameWhen,
@@ -193,6 +204,7 @@ public class Experiment<I, O, M> implements Function<I, O> {
         Assert.notNull(doExperimentWhen, "doExperimentWhen must be non-null");
         Assert.notNull(sameWhen, "sameWhen must be non-null");
         Assert.notNull(exceptionsSameWhen, "exceptionsSameWhen must be non-null");
+        Assert.notNull(doSeriallyWhen, "doSeriallyWhen must be non-null");
         Assert.notNull(simplifier, "simplifier must be non-null");
         Assert.notNull(publisher, "publisher must be non-null");
         Assert.notNull(clock, "clock must be non-null");
@@ -206,6 +218,7 @@ public class Experiment<I, O, M> implements Function<I, O> {
         this.doExperimentWhen = doExperimentWhen;
         this.sameWhen = sameWhen;
         this.exceptionsSameWhen = exceptionsSameWhen;
+        this.doSeriallyWhen = doSeriallyWhen;
         this.simplifier = simplifier;
         this.publisher = publisher;
         this.clock = clock;
@@ -224,8 +237,10 @@ public class Experiment<I, O, M> implements Function<I, O> {
         Result<O> result;
         Instant timestamp = Instant.now();
         if (doExperimentWhen.getAsBoolean()) {
-            Map<TrialType, List<TrialResult<O>>> results = controlThenCandidate
-                    .parallelStream()
+            Stream<Function<I, TrialResult<O>>> stream = (doSeriallyWhen.getAsBoolean()) ?
+                    controlThenCandidate.stream() :
+                    controlThenCandidate.parallelStream();
+            Map<TrialType, List<TrialResult<O>>> results = stream
                     .map((function) -> function.apply(args))
                     .collect(Collectors.groupingBy((TrialResult t) -> t.getTrialType()));
 
@@ -264,5 +279,9 @@ public class Experiment<I, O, M> implements Function<I, O> {
         Instant end = clock.instant();
         Duration duration = Duration.between(start, end);
         return new TrialResult<>(trialType, duration, exception, value);
+    }
+
+    public String getName() {
+        return name;
     }
 }

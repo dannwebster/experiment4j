@@ -13,23 +13,6 @@ import java.util.stream.Collectors;
 
 /**
  * Created by dannwebster on 10/12/14.
- * {
- :experiment => "widget-permissions",
- :first      => :control,
- :timestamp  => <a-Time-instance>,
-
- :candidate => {
- :duration  => 2.5,
- :exception => nil,
- :value     => 42
- },
-
- :control => {
- :duration  => 25.0,
- :exception => nil,
- :value     => 24
- }
- }
  */
 public class Result<T> {
 

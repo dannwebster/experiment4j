@@ -22,6 +22,7 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import static com.ticketmaster.exp.util.Selectors.always;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
@@ -184,5 +185,23 @@ public class ExperimentTest {
         verify(control, times(1)).apply(ARGS);
         verify(candidate, never()).apply(ARGS);
         verify(p, never()).publish(any(), any());
+    }
+    
+    @Test
+    public void testExperimentsShouldPerformMethodsSeriallyWhenSerialDoSeriallyWhenReturnsTrue() throws Exception {
+        
+        // GIVEN
+        Experiment<String, String, String> e = Experiment.<String, String>simple("my experiment")
+                .control(control)
+                .candidate(candidate)
+                .doSeriallyWhen(always())
+                .publishedBy(p)
+                .get();
+
+        // WHEN
+        
+        // THEN
+        
+                
     }
 }
