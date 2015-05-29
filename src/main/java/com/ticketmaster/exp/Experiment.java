@@ -280,4 +280,8 @@ public class Experiment<I, O, M> implements Function<I, O> {
         Duration duration = Duration.between(start, end);
         return new TrialResult<>(trialType, duration, exception, value);
     }
+
+    public String getName() {
+        return name;
+    }
 }
