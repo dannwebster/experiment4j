@@ -30,7 +30,8 @@ Domain Concepts
 ---------------
 There are only a few main domain concepts for this framework:
 
-* _Experiment_: a wrapper around 2 implementations of the same business logic: the _Control_ and the _Candidate_. The wrapper   1. Runs the _Control_ and _Candidate_ implementations in parallel (using a thread executor)
+* _Experiment_: a wrapper around 2 implementations of the same business logic: the _Control_ and the _Candidate_. The wrapper   
+  1. Runs the _Control_ and _Candidate_ implementations in parallel (using a thread executor)
   2. Times the execution of both the _Control_ and _Candidate_
   3. Compares the results for equality
   3. Pushes the comparison data (generated in 2 and 3 above) to a _Publisher_
@@ -42,14 +43,79 @@ There are only a few main domain concepts for this framework:
 
 DSL Syntax
 ----------
-The DSL Syntax is under construction, but an example of the current iteration is here: [DSL Test](https://github.com/dannwebster/experiment4j/blob/master/src/test/java/com/crypticmission/exp/ExperimentTest.java).
-The main issue with this is that the distinction between building an instance of _Science_ (the factory that holds the 
-baseline _Experiment_ configuration), and the _Experiment_ itself.
+Some examples of the DSL syntax are found here: [ExperimentTest.java](https://github.com/dannwebster/experiment4j/blob/master/src/test/java/com/ticketmaster/exp/ExperimentTest.java)
 
-The goal of the DSL is to mimic the Ruby syntax of the [Science framework](https://github.com/github/dat-science),
-but without causing any unexpected side effects.
+Here is a contrived example Experiment that has been annotated expose all of the bells and whistles:
 
-The current DSL has the unexpected side effect of redefining both the Science and the Experiment instances each time it is
-executed. Any final version of the framework should allow you to define both the Science and the Experiment in line, but
-only construct the instance once. (see [Issue #1](https://github.com/dannwebster/experiment4j/issues/1) to track this)
+Person.java
 
+```java
+    public class Person {
+        private final String firstName;
+        private final String lastName;
+
+        public Person(Stirng fname, String lname) {
+            this.firstName = fname;
+            this.lastName = lname;
+        }
+
+        public String getFirstName() { return firstName; }
+        public String getLastName() { return firstName; }
+    }
+```
+
+ExperimentExample.java
+
+```java
+    Experiment<Person, String, Integer> experiment = Experiment.named("my experiment")
+        .timedBy(clock)
+
+        // The "control" method will always be performed 
+        // The input type is the first type parameter (eg, Person)
+        // The output type is the second type parameter (eg, String)
+        .control( (Person p) ->  p.getFirstName() + " " + p.getLastName() ) 
+
+        // The "candidate" method will be performed when 
+        // "doExperimentWhen" BooleanSupplier returns true
+        .candidate( (Person p) -> String.format("%s %s", p.getFirstName(), p,getLastName()) 
+
+        // This output of this function is the Integer value that will be 
+        // compared by the "sameWhen" function to determine ifthe two responses are equal. 
+        // The output type of this function is the 3rd type parameter (eg, Integer)
+        .simplifiedBy( (String name) -> name.hashCode() ) 
+
+        // the experiment will be performed (that is, both the control and the candidate will be run)
+        // when the doExperimentWhen BooleanSupplier returns true.
+        // Otherwise, only the control will be run
+        // In this case, the experiment will always be run 
+        .doExperimentWhen(Selectors.always()) 
+
+        // the candidate and control be run serially when the doSeriallyWhen BooleanSupplier returns true;
+        // otherwise, it will return run them in a parallel stream, such that they run simultaneously
+        // In this case, they will never be run serially
+        .doSeriallyWhen(Selectors.never()) 
+
+        // the candidate and control are considered "equal" when Object.equals() 
+        // returns "true" on the result of the simplifiedBy function
+        .sameWhen(Objects::equals) 
+
+        // will return the Candidate value
+        .returnChoice( (Result<String> result) -> result.getCandidateResult() ) 
+
+        // if both the underlying Candidate and Control methods were to throw exceptions, 
+        // this is how it would be determined if they were equal
+        .exceptionsSameWhen(SameWhens.classesMatch()) 
+
+        // this will print the timing and the match status to System.out,
+        .publishedBy(new SystemOutPublisher())) 
+
+        .get();
+
+    // Every Experiment is a function that mirrors the input and output 
+    // types of the candidate and control functions
+    Function<Person, String> getName = experiment;
+
+    String fullName = getName.apply(new Person("Dann", "Webster"));
+
+    assert fullName.equals("Dann Webster");
+```
