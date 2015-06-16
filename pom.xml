@@ -136,8 +136,66 @@
           </targetTests>
         </configuration>
       </plugin>
-    </plugins>
-  </build>
+    <plugin>
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-release-plugin</artifactId>
+      <version>2.4.1</version>
+      <configuration>
+        <tagNameFormat>v@{project.version}</tagNameFormat>
+      </configuration>
+    </plugin>
+
+    <plugin>
+      <groupId>org.codehaus.mojo</groupId>
+      <artifactId>findbugs-maven-plugin</artifactId>
+      <version>3.0.0</version>
+      <configuration>
+        <effort>Max</effort>
+        <threshold>Low</threshold>
+        <!--
+        For a list of "Vistors" to omit or include:
+        http://findbugs.sourceforge.net/api/edu/umd/cs/findbugs/detect/package-summary.html
+        -->
+        <omitVisitors>Naming</omitVisitors>
+      </configuration>
+      <executions>
+        <!--
+           Ensures that FindBugs inspects source code when project is under test.
+           We could/should do this during compile but can make local development slower.
+       -->
+        <execution>
+          <id>analyze-compile</id>
+          <phase>test</phase>
+          <goals>
+            <goal>check</goal>
+          </goals>
+        </execution>
+      </executions>
+    </plugin>
+
+    <plugin>
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-checkstyle-plugin</artifactId>
+      <version>2.15</version>
+      <configuration>
+        <consoleOutput>true</consoleOutput>
+        <configLocation>${basedir}/checkstyle.xml</configLocation>
+        <failsOnError>true</failsOnError>
+      </configuration>
+      <executions>
+        <execution>
+          <id>checkstyle</id>
+          <phase>verify</phase>
+          <goals>
+            <goal>checkstyle</goal>
+          </goals>
+        </execution>
+      </executions>
+    </plugin>
+
+  </plugins>
+
+</build>
 
   <distributionManagement>
     <repository>

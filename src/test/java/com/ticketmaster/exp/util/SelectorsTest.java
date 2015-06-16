@@ -1,3 +1,19 @@
+/*
+ * Copyright 2015 the original author or authors.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package com.ticketmaster.exp.util;
 
 import org.junit.Rule;
@@ -12,167 +28,169 @@ import static org.junit.Assert.assertEquals;
  * Created by dannwebster on 4/18/15.
  */
 public class SelectorsTest {
-    // removes noise from coverage results
-    Selectors s = new Selectors();
+  // removes noise from coverage results
+  Selectors s = new Selectors();
 
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
+  @Rule
+  public ExpectedException expectedException = ExpectedException.none();
 
-    @Test
-    public void testPermilleOver1000ShouldThrowException() throws Exception {
-        expectedException.expect(IllegalArgumentException.class);
-        expectedException.expectMessage("value 1001 is not between bounds of 0 (inclusive) and 1001 (exclusive)");
-        Selectors.permille(1001);
-    }
+  @Test
+  public void testPermilleOver1000ShouldThrowException() throws Exception {
+    expectedException.expect(IllegalArgumentException.class);
+    expectedException.expectMessage("value 1001 is not between bounds of 0 (inclusive) and 1001 (exclusive)");
+    Selectors.permille(1001);
+  }
 
-    @Test
-    public void testPermilleUnder0ShouldThrowException() throws Exception {
-        expectedException.expect(IllegalArgumentException.class);
-        expectedException.expectMessage("value -1 is not between bounds of 0 (inclusive) and 1001 (exclusive)");
-        Selectors.permille(-1);
-    }
+  @Test
+  public void testPermilleUnder0ShouldThrowException() throws Exception {
+    expectedException.expect(IllegalArgumentException.class);
+    expectedException.expectMessage("value -1 is not between bounds of 0 (inclusive) and 1001 (exclusive)");
+    Selectors.permille(-1);
+  }
 
-    @Test
-    public void testPercentOver100ShouldThrowException() throws Exception {
-        expectedException.expect(IllegalArgumentException.class);
-        expectedException.expectMessage("value 101 is not between bounds of 0 (inclusive) and 101 (exclusive)");
-        Selectors.percent(101);
-    }
+  @Test
+  public void testPercentOver100ShouldThrowException() throws Exception {
+    expectedException.expect(IllegalArgumentException.class);
+    expectedException.expectMessage("value 101 is not between bounds of 0 (inclusive) and 101 (exclusive)");
+    Selectors.percent(101);
+  }
 
-    @Test
-    public void testPercentUnder0ShouldThrowException() throws Exception {
-        expectedException.expect(IllegalArgumentException.class);
-        expectedException.expectMessage("value -1 is not between bounds of 0 (inclusive) and 101 (exclusive)");
-        Selectors.percent(-1);
-    }
+  @Test
+  public void testPercentUnder0ShouldThrowException() throws Exception {
+    expectedException.expect(IllegalArgumentException.class);
+    expectedException.expectMessage("value -1 is not between bounds of 0 (inclusive) and 101 (exclusive)");
+    Selectors.percent(-1);
+  }
 
-    @Test
-    public void testConstantThresholds() throws Exception {
-        assertEquals(true, Selectors.always().getAsBoolean());
-        assertEquals(false, Selectors.never().getAsBoolean());
-    }
+  @Test
+  public void testConstantThresholds() throws Exception {
+    assertEquals(true, Selectors.always().getAsBoolean());
+    assertEquals(false, Selectors.never().getAsBoolean());
+  }
 
-    @Test
-    public void testPercentAlwaysReturnTrueForMaxThreshold() throws Exception {
-        // Given
-        BooleanSupplier percent = Selectors.percent(100);
+  @Test
+  public void testPercentAlwaysReturnTrueForMaxThreshold() throws Exception {
+    // Given
+    BooleanSupplier percent = Selectors.percent(100);
 
-        // When
-        boolean pass = percent.getAsBoolean();
+    // When
+    boolean pass = percent.getAsBoolean();
 
-        // Then
-        assertEquals(true, pass);
+    // Then
+    assertEquals(true, pass);
 
-    }
+  }
 
-    @Test
-    public void testPermilleAlwaysReturnTrueForMaxThreshold() throws Exception {
-        // Given
-        BooleanSupplier permille = Selectors.permille(1000);
+  @Test
+  public void testPermilleAlwaysReturnTrueForMaxThreshold() throws Exception {
+    // Given
+    BooleanSupplier permille = Selectors.permille(1000);
 
-        // When
-        boolean pass = permille.getAsBoolean();
+    // When
+    boolean pass = permille.getAsBoolean();
 
-        // Then
-        assertEquals(true, pass);
+    // Then
+    assertEquals(true, pass);
 
-    }
+  }
 
-    @Test
-    public void testPercentNeverReturnTrueForThreshold0() throws Exception {
-        // Given
-        BooleanSupplier percent = Selectors.percent(0);
+  @Test
+  public void testPercentNeverReturnTrueForThreshold0() throws Exception {
+    // Given
+    BooleanSupplier percent = Selectors.percent(0);
 
-        // When
-        boolean pass = percent.getAsBoolean();
+    // When
+    boolean pass = percent.getAsBoolean();
 
-        // Then
-        assertEquals(false, pass);
-    }
+    // Then
+    assertEquals(false, pass);
+  }
 
-    @Test
-    public void testPermilleNeverReturnTrueForThreshold0() throws Exception {
-        // Given
-        BooleanSupplier permille = Selectors.permille(0);
+  @Test
+  public void testPermilleNeverReturnTrueForThreshold0() throws Exception {
+    // Given
+    BooleanSupplier permille = Selectors.permille(0);
 
-        // When
-        boolean pass = permille.getAsBoolean();
+    // When
+    boolean pass = permille.getAsBoolean();
 
-        // Then
-        assertEquals(false, pass);
-    }
+    // Then
+    assertEquals(false, pass);
+  }
 
-    @Test
-    public void testPercentOfObjectHashWithMinPercentIsNeverTrue() throws Exception {
+  @Test
+  public void testPercentOfObjectHashWithMinPercentIsNeverTrue() throws Exception {
 
-        // GIVEN
-        Object o = new Object() {
-            public int hashCode() {
-                return 100;
-            }
-        };
-        BooleanSupplier percent = Selectors.percentOfObjectHash(0, () -> o);
+    // GIVEN
+    Object o = new Object() {
+      public int hashCode() {
+        return 100;
+      }
+    };
+    BooleanSupplier percent = Selectors.percentOfObjectHash(0, () -> o);
 
-        // WHEN
-        boolean pass = percent.getAsBoolean();
-
-
-        // THEN
-        assertEquals(false, pass);
-    }
-    @Test
-    public void testPercentOfObjectHashWithMaxPercentIsAlwaysTrue() throws Exception {
-        
-        // GIVEN
-        Object o = new Object() {
-            public int hashCode() {
-                return 100;
-            }
-        };
-        BooleanSupplier percent = Selectors.percentOfObjectHash(100, () -> o);
-        
-        // WHEN
-        boolean pass = percent.getAsBoolean();
-
-        
-        // THEN
-        assertEquals(true, pass);
-    }
-
-    @Test
-    public void testPermilleOfObjectHashWithMinPermilleIsNeverTrue() throws Exception {
-
-        // GIVEN
-        Object o = new Object() {
-            public int hashCode() {
-                return 1000;
-            }
-        };
-        BooleanSupplier permille = Selectors.permilleOfObjectHash(0, () -> o);
-
-        // WHEN
-        boolean pass = permille.getAsBoolean();
+    // WHEN
+    boolean pass = percent.getAsBoolean();
 
 
-        // THEN
-        assertEquals(false, pass);
-    }
-    @Test
-    public void testPermilleOfObjectHashWithMaxPermilleIsAlwaysTrue() throws Exception {
+    // THEN
+    assertEquals(false, pass);
+  }
 
-        // GIVEN
-        Object o = new Object() {
-            public int hashCode() {
-                return 1000;
-            }
-        };
-        BooleanSupplier permille = Selectors.permilleOfObjectHash(1000, () -> o);
+  @Test
+  public void testPercentOfObjectHashWithMaxPercentIsAlwaysTrue() throws Exception {
 
-        // WHEN
-        boolean pass = permille.getAsBoolean();
+    // GIVEN
+    Object o = new Object() {
+      public int hashCode() {
+        return 100;
+      }
+    };
+    BooleanSupplier percent = Selectors.percentOfObjectHash(100, () -> o);
+
+    // WHEN
+    boolean pass = percent.getAsBoolean();
 
 
-        // THEN
-        assertEquals(true, pass);
-    }
+    // THEN
+    assertEquals(true, pass);
+  }
+
+  @Test
+  public void testPermilleOfObjectHashWithMinPermilleIsNeverTrue() throws Exception {
+
+    // GIVEN
+    Object o = new Object() {
+      public int hashCode() {
+        return 1000;
+      }
+    };
+    BooleanSupplier permille = Selectors.permilleOfObjectHash(0, () -> o);
+
+    // WHEN
+    boolean pass = permille.getAsBoolean();
+
+
+    // THEN
+    assertEquals(false, pass);
+  }
+
+  @Test
+  public void testPermilleOfObjectHashWithMaxPermilleIsAlwaysTrue() throws Exception {
+
+    // GIVEN
+    Object o = new Object() {
+      public int hashCode() {
+        return 1000;
+      }
+    };
+    BooleanSupplier permille = Selectors.permilleOfObjectHash(1000, () -> o);
+
+    // WHEN
+    boolean pass = permille.getAsBoolean();
+
+
+    // THEN
+    assertEquals(true, pass);
+  }
 }
