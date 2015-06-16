@@ -32,7 +32,8 @@ public class PrintStreamMeasurer implements Measurer<String> {
   private final PrintStream printStream;
   private final MatchCounter<String> matchCounter;
 
-  public static PrintStreamMeasurer from(PrintStream printStream, MatchCounter<String> matchCounter) {
+  public static PrintStreamMeasurer from(PrintStream printStream,
+                                         MatchCounter<String> matchCounter) {
     return new PrintStreamMeasurer(printStream, matchCounter);
   }
 

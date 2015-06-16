@@ -38,6 +38,8 @@ public class PatternMatchCountNamer implements MatchCountNamer<String> {
 
   @Override
   public String name(String experimentName, MatchType matchType) {
-    return String.format(pattern, experimentName, matchType.name().toLowerCase(Locale.getDefault()));
+    return String.format(pattern,
+        experimentName,
+        matchType.name().toLowerCase(Locale.getDefault()));
   }
 }
