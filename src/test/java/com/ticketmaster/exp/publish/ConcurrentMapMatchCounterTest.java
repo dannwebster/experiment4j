@@ -30,11 +30,28 @@ public class ConcurrentMapMatchCounterTest {
     assertEquals(true, ccmc.getCounts().isEmpty());
 
     // WHEN
-    int count = ccmc.getAndIncrement("foo");
+    int count = ccmc.getAndIncrement("foo", 1);
 
     // THEN
     assertEquals(1, count);
     assertEquals(1, ccmc.getMatchCount("foo").intValue());
+    assertEquals(1, ccmc.getCounts().size());
+    assertEquals(true, ccmc.getCounts().containsKey("foo"));
+  }
+
+  @Test
+  public void testGetAndIncrementByTwoOnEmptyMap() throws Exception {
+
+    // GIVEN
+    ConcurrentMapMatchCounter<String> ccmc = new ConcurrentMapMatchCounter<>();
+    assertEquals(true, ccmc.getCounts().isEmpty());
+
+    // WHEN
+    int count = ccmc.getAndIncrement("foo", 2);
+
+    // THEN
+    assertEquals(2, count);
+    assertEquals(2, ccmc.getMatchCount("foo").intValue());
     assertEquals(1, ccmc.getCounts().size());
     assertEquals(true, ccmc.getCounts().containsKey("foo"));
   }
@@ -45,14 +62,32 @@ public class ConcurrentMapMatchCounterTest {
     // GIVEN
     ConcurrentMapMatchCounter<String> ccmc = new ConcurrentMapMatchCounter<>();
     assertEquals(true, ccmc.getCounts().isEmpty());
-    int count = ccmc.getAndIncrement("foo");
+    int count = ccmc.getAndIncrement("foo", 1);
 
     // WHEN
-    count = ccmc.getAndIncrement("foo");
+    count = ccmc.getAndIncrement("foo", 1);
 
     // THEN
     assertEquals(2, count);
     assertEquals(2, ccmc.getMatchCount("foo").intValue());
+    assertEquals(1, ccmc.getCounts().size());
+    assertEquals(true, ccmc.getCounts().containsKey("foo"));
+  }
+
+  @Test
+  public void testGetAndIncrementByTwoOnExistingValue() throws Exception {
+
+    // GIVEN
+    ConcurrentMapMatchCounter<String> ccmc = new ConcurrentMapMatchCounter<>();
+    assertEquals(true, ccmc.getCounts().isEmpty());
+    int count = ccmc.getAndIncrement("foo", 1);
+
+    // WHEN
+    count = ccmc.getAndIncrement("foo", 2);
+
+    // THEN
+    assertEquals(3, count);
+    assertEquals(3, ccmc.getMatchCount("foo").intValue());
     assertEquals(1, ccmc.getCounts().size());
     assertEquals(true, ccmc.getCounts().containsKey("foo"));
   }

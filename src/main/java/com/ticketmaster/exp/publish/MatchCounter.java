@@ -24,7 +24,7 @@ import java.util.Map;
 public interface MatchCounter<K> {
   public Integer getMatchCount(K matchKey);
 
-  public int getAndIncrement(K matchKey);
+  public int getAndIncrement(K matchKey, int count);
 
   public Map<K, Integer> getCounts();
 }
