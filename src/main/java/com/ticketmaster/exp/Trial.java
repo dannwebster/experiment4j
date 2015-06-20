@@ -40,7 +40,7 @@ import static com.ticketmaster.exp.TrialType.CONTROL;
 import static com.ticketmaster.exp.util.Selectors.always;
 import static com.ticketmaster.exp.util.Selectors.never;
 
-public class Experiment<I, O, M> implements Function<I, O> {
+public class Trial<I, O, M> implements Function<I, O> {
 
   private final String name;
   private final Duple<Function<I, TrialResult<O>>> controlThenCandidate;
@@ -55,7 +55,7 @@ public class Experiment<I, O, M> implements Function<I, O> {
 
   private final Publisher<O> publisher;
 
-  public static class Simple<I, O> extends Experiment<I, O, O> {
+  public static class Simple<I, O> extends Trial<I, O, O> {
     public Simple(String name,
                   Function<I, O> control,
                   Function<I, O> candidate,
@@ -74,7 +74,7 @@ public class Experiment<I, O, M> implements Function<I, O> {
   }
 
   public abstract static class
-      BaseBuilder<I, O, M, E extends Experiment<I, O, M>, B extends com.ticketmaster.exp.ExperimentBuilder<I, O, M, E, B>>
+      BaseBuilder<I, O, M, E extends Trial<I, O, M>, B extends com.ticketmaster.exp.ExperimentBuilder<I, O, M, E, B>>
       implements com.ticketmaster.exp.ExperimentBuilder<I, O, M, E, B> {
     String name;
     Function<I, O> control;
@@ -99,6 +99,10 @@ public class Experiment<I, O, M> implements Function<I, O> {
 
     private B me() {
       return (B) this;
+    }
+
+    public String getName() {
+      return this.name;
     }
 
     public B simplifiedBy(Function<O, M> simplifier) {
@@ -170,15 +174,14 @@ public class Experiment<I, O, M> implements Function<I, O> {
     }
   }
 
-  public static class Builder<I, O, M>
-      extends BaseBuilder<I, O, M, Experiment<I, O, M>, Builder<I, O, M>> {
+  public static class Builder<I, O, M> extends BaseBuilder<I, O, M, Trial<I, O, M>, Builder<I, O, M>> {
 
     public Builder(String name) {
       super(name);
     }
 
-    public Experiment<I, O, M> get() {
-      return new Experiment<>(name, control, candidate,
+    public Trial<I, O, M> get() {
+      return new Trial<>(name, control, candidate,
           returnChoice, doExperimentWhen, doSeriallyWhen, simplifier,
           sameWhen, exceptionsSameWhen, publisher, clock);
     }
@@ -192,7 +195,7 @@ public class Experiment<I, O, M> implements Function<I, O> {
     return new Builder<>(name);
   }
 
-  Experiment(
+  Trial(
       String name,
       Function<I, O> control,
       Function<I, O> candidate,

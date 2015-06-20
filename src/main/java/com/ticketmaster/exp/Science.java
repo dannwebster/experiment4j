@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
 
 /**
  * Created by dannwebster on 4/18/15.
@@ -55,8 +54,8 @@ public class Science {
     }
   }
 
-  public <I, O, M> Optional<Experiment<I, O, M>> getExperiment(String name) {
-    Optional<Experiment<I, O, M>> opt = Optional.empty();
+  public <I, O, M> Optional<Trial<I, O, M>> getExperiment(String name) {
+    Optional<Trial<I, O, M>> opt = Optional.empty();
     if (cache.containsKey(name)) {
       opt = Optional.of(cache.get(name).get());
     }

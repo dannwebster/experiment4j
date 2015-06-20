@@ -47,12 +47,12 @@ public class ScienceTest {
     assertEquals(0, Science.science().getExperimentCount());
   }
 
-  public Experiment<String, String, String> buildExperiment(Supplier callTracker) throws Exception {
+  public Trial<String, String, String> buildExperiment(Supplier callTracker) throws Exception {
     return Science.science().experiment(
         "my-experiment",
         () -> {
           callTracker.get();
-          return Experiment
+          return Trial
               .simple("my-experiment")
               .control((args) -> "foo")
               .candidate((args) -> "candidate")
@@ -63,14 +63,14 @@ public class ScienceTest {
 
   @Test
   public void testDoExperimentDoesNotRebuildExperiment() throws Exception {
-    Experiment<String, String, String> exp = buildExperiment(callTracker);
+    Trial<String, String, String> exp = buildExperiment(callTracker);
 
     // GIVEN
     Science.science().experiment(
         "my-experiment",
         () -> {
           callTracker.get();
-          return Experiment
+          return Trial
               .named("my-experiment")
               .control((args) -> "foo")
               .candidate((args) -> "candidate").get();
@@ -105,7 +105,7 @@ public class ScienceTest {
     // no build experiment
 
     // WHEN
-    Optional<Experiment<String, String, String>> optEx = Science.science().getExperiment("my-experiment");
+    Optional<Trial<String, String, String>> optEx = Science.science().getExperiment("my-experiment");
 
     // THEN
     assertEquals(false, optEx.isPresent());
@@ -118,7 +118,7 @@ public class ScienceTest {
     buildExperiment(callTracker);
 
     // WHEN
-    Optional<Experiment<String, String, String>> optEx = Science.science().getExperiment("my-experiment");
+    Optional<Trial<String, String, String>> optEx = Science.science().getExperiment("my-experiment");
 
     // THEN
     assertEquals(true, optEx.isPresent());
@@ -132,7 +132,7 @@ public class ScienceTest {
     buildExperiment(callTracker);
 
     // WHEN
-    Map<String, Experiment> experimentMap = Science.science().experiments();
+    Map<String, Trial> experimentMap = Science.science().experiments();
 
     // THEN
     assertEquals(1, experimentMap.size());
@@ -146,7 +146,7 @@ public class ScienceTest {
     // GIVEN
     Science.science().experiment(
         "my-experiment",
-        Experiment
+        Trial
             .<String, String>simple("my-experiment")
             .control((args) -> (String) null)
             .candidate((args) -> "candidate")

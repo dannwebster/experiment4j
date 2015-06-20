@@ -27,10 +27,10 @@ import java.util.function.Supplier;
 /**
  * Created by dannwebster on 6/20/15.
  */
-public interface ExperimentBuilder<I, O, M, E extends Experiment<I, O, M>, B extends ExperimentBuilder<I, O, M, E, B>>
-    extends Supplier<Experiment<I, O, M>> {
+public interface ExperimentBuilder<I, O, M, E extends Trial<I, O, M>, B extends ExperimentBuilder<I, O, M, E, B>>
+    extends Supplier<Trial<I, O, M>> {
 
-  public Experiment<I, O, M> get();
+  public Trial<I, O, M> get();
 
   public String getName();
 

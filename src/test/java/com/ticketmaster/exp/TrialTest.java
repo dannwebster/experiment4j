@@ -43,7 +43,7 @@ import static org.mockito.Mockito.when;
  * Created by dannwebster on 10/12/14.
  */
 
-public class ExperimentTest {
+public class TrialTest {
   public static final String ARGS = "foo";
 
   Function<String, String> candidate = mock(Function.class);
@@ -62,7 +62,7 @@ public class ExperimentTest {
   public void testSimpleCallsPublish() throws Exception {
 
     // GIVEN
-    Function<String, String> e = Experiment.<String, String>simple("my simple experiment")
+    Function<String, String> e = Trial.<String, String>simple("my simple experiment")
         .control(control)
         .candidate(candidate)
         .timedBy(c)
@@ -84,7 +84,7 @@ public class ExperimentTest {
 
     // GIVEN
     when(candidate.apply(any())).thenReturn("control");
-    Experiment<String, String, String> e = Experiment.<String, String, String>named("my experiment")
+    Trial<String, String, String> e = Trial.<String, String, String>named("my experiment")
         .control(control)
         .candidate(candidate)
         .timedBy(c)
@@ -106,7 +106,7 @@ public class ExperimentTest {
   public void testReturnCandidate() throws Exception {
 
     // GIVEN
-    Experiment<String, String, String> e = Experiment.<String, String, String>named("my experiment")
+    Trial<String, String, String> e = Trial.<String, String, String>named("my experiment")
         .control(control)
         .candidate(candidate)
         .timedBy(c)
@@ -129,7 +129,7 @@ public class ExperimentTest {
   public void testIgnoreExperiment() throws Exception {
 
     // GIVEN
-    Experiment<String, String, String> e = Experiment.<String, String, String>named("my experiment")
+    Trial<String, String, String> e = Trial.<String, String, String>named("my experiment")
         .control(control)
         .candidate(candidate)
         .timedBy(c)
@@ -157,7 +157,7 @@ public class ExperimentTest {
     // GIVEN
     when(control.apply(ARGS)).thenThrow(new IllegalArgumentException("control failed"));
 
-    Experiment<String, String, String> e = Experiment.<String, String, String>named("my experiment")
+    Trial<String, String, String> e = Trial.<String, String, String>named("my experiment")
         .control(control)
         .candidate(candidate)
         .timedBy(c)
@@ -180,7 +180,7 @@ public class ExperimentTest {
     // GIVEN
     when(candidate.apply(ARGS)).thenThrow(new IllegalArgumentException("control failed"));
 
-    Experiment<String, String, String> e = Experiment.<String, String, String>named("my experiment")
+    Trial<String, String, String> e = Trial.<String, String, String>named("my experiment")
         .control(control)
         .candidate(candidate)
         .simplifiedBy(a -> a)
@@ -204,7 +204,7 @@ public class ExperimentTest {
   public void testExperimentsShouldPerformMethodsSeriallyWhenSerialDoSeriallyWhenReturnsTrue() throws Exception {
 
     // GIVEN
-    Experiment<String, String, String> e = Experiment.<String, String>simple("my experiment")
+    Trial<String, String, String> e = Trial.<String, String>simple("my experiment")
         .control(control)
         .candidate(candidate)
         .doSeriallyWhen(always())
