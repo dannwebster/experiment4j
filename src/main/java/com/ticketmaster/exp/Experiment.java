@@ -32,7 +32,6 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -56,32 +55,6 @@ public class Experiment<I, O, M> implements Function<I, O> {
 
   private final Publisher<O> publisher;
 
-  public interface Builder<I, O, M, E extends Experiment<I, O, M>, B extends Builder<I, O, M, E, B>>
-      extends Supplier<Experiment<I, O, M>> {
-
-    public Experiment<I, O, M> get();
-
-    public B simplifiedBy(Function<O, M> simplifier);
-
-    public B sameWhen(BiFunction<M, M, Boolean> sameWhen);
-
-    public B exceptionsSameWhen(BiFunction<Exception, Exception, Boolean> sameWhen);
-
-    public B timedBy(Clock clock);
-
-    public B publishedBy(Publisher<O> publisher);
-
-    public B returnChoice(Function<Result<O>, Try<O>> returnChoice);
-
-    public B doExperimentWhen(BooleanSupplier doExperimentWhen);
-
-    public B doSeriallyWhen(BooleanSupplier doSeriallyWhen);
-
-    public B control(Function<I, O> control);
-
-    public B candidate(Function<I, O> candidate);
-  }
-
   public static class Simple<I, O> extends Experiment<I, O, O> {
     public Simple(String name,
                   Function<I, O> control,
@@ -101,8 +74,8 @@ public class Experiment<I, O, M> implements Function<I, O> {
   }
 
   public abstract static class
-      BaseBuilder<I, O, M, E extends Experiment<I, O, M>, B extends Builder<I, O, M, E, B>>
-      implements Builder<I, O, M, E, B> {
+      BaseBuilder<I, O, M, E extends Experiment<I, O, M>, B extends com.ticketmaster.exp.ExperimentBuilder<I, O, M, E, B>>
+      implements com.ticketmaster.exp.ExperimentBuilder<I, O, M, E, B> {
     String name;
     Function<I, O> control;
     Function<I, O> candidate;
@@ -197,10 +170,10 @@ public class Experiment<I, O, M> implements Function<I, O> {
     }
   }
 
-  public static class ExperimentBuilder<I, O, M>
-      extends BaseBuilder<I, O, M, Experiment<I, O, M>, ExperimentBuilder<I, O, M>> {
+  public static class Builder<I, O, M>
+      extends BaseBuilder<I, O, M, Experiment<I, O, M>, Builder<I, O, M>> {
 
-    public ExperimentBuilder(String name) {
+    public Builder(String name) {
       super(name);
     }
 
@@ -215,8 +188,8 @@ public class Experiment<I, O, M> implements Function<I, O> {
     return new SimpleBuilder<>(name);
   }
 
-  public static <I, O, M> ExperimentBuilder<I, O, M> named(String name) {
-    return new ExperimentBuilder<>(name);
+  public static <I, O, M> Builder<I, O, M> named(String name) {
+    return new Builder<>(name);
   }
 
   Experiment(

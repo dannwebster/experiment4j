@@ -16,6 +16,8 @@
 
 package com.ticketmaster.exp;
 
+import com.ticketmaster.exp.util.Assert;
+
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -26,7 +28,7 @@ import java.util.function.Supplier;
  * Created by dannwebster on 4/18/15.
  */
 public class Science {
-  private final Map<String, Experiment> cache = new ConcurrentHashMap<>();
+  private final Map<String, ExperimentBuilder> cache = new ConcurrentHashMap<>();
 
   public static final Science INSTANCE = new Science();
 
@@ -43,16 +45,25 @@ public class Science {
         .apply(args);
   }
 
-  public <I, O, M> Experiment<I, O, M> experiment(
-      String name, Supplier<? extends Experiment> experimentBuilder) {
-    return cache.computeIfAbsent(name, (key) -> experimentBuilder.get());
+  public void addExperiment(ExperimentBuilder experimentBuilder) {
+    Assert.notNull(experimentBuilder, "experimentBuilder must be non-null");
+    if (!cache.containsKey(experimentBuilder.getName())) {
+      cache.put(experimentBuilder.getName(), experimentBuilder);
+    } else {
+      throw new IllegalArgumentException("experimentBuilder for name " +
+          experimentBuilder.getName() + " already exists");
+    }
   }
 
   public <I, O, M> Optional<Experiment<I, O, M>> getExperiment(String name) {
-    return Optional.ofNullable(cache.get(name));
+    Optional<Experiment<I, O, M>> opt = Optional.empty();
+    if (cache.containsKey(name)) {
+      opt = Optional.of(cache.get(name).get());
+    }
+    return opt;
   }
 
-  public Map<String, Experiment> experiments() {
+  public Map<String, ExperimentBuilder> experiments() {
     return Collections.unmodifiableMap(cache);
   }
 
