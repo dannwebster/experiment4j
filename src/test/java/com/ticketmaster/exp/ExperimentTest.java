@@ -14,26 +14,30 @@
  *  limitations under the License.
  */
 
-package com.ticketmaster.exp.publish;
+package com.ticketmaster.exp;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import com.ticketmaster.exp.util.Selectors;
+import org.junit.Test;
 
-public class ConcurrentMapMatchCounter<K> implements MatchCounter<K> {
-  private final Map<K, Integer> counts = new ConcurrentHashMap<>();
+import java.util.function.BooleanSupplier;
 
-  public Integer getMatchCount(K matchKey) {
-    return counts.get(matchKey);
+import static com.ticketmaster.exp.Science.science;
+import static org.junit.Assert.assertEquals;
+
+/**
+ * Created by dannwebster on 6/20/15.
+ */
+public class ExperimentTest {
+  @Test
+  public void testExperiment() throws Exception {
+    // GIVEN
+    science().experiment("person-name", () -> new Experiment<Object, Object>("person-name"));
+
+    // WHEN
+    String name = science().experiments().get("person-name").getName();
+
+    // THEN
+    assertEquals("person-name", name);
+
   }
-
-  public int getAndIncrement(K matchKey, int count) {
-    int matchCount = counts.compute(matchKey, (key, value) -> value == null ? count : count + value);
-    return matchCount;
-  }
-
-  public Map<K, Integer> getCounts() {
-    return Collections.unmodifiableMap(counts);
-  }
-
 }

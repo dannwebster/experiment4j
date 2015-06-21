@@ -34,8 +34,8 @@ public class PrintStreamPublisherTest {
   Result<String> result = new Result<>(
       "example",
       Instant.EPOCH,
-      new TrialResult<>(TrialType.CANDIDATE, Duration.ofMillis(1L), null, "candidate"),
-      new TrialResult<>(TrialType.CONTROL, Duration.ofMillis(1L), null, "control"));
+      new TrialResult<>(TrialType.CONTROL, Duration.ofMillis(1L), null, "control"), new TrialResult<>(TrialType.CANDIDATE, Duration.ofMillis(1L), null, "candidate")
+  );
 
   ByteArrayOutputStream bos = new ByteArrayOutputStream();
   PrintStream ps = new PrintStream(bos);

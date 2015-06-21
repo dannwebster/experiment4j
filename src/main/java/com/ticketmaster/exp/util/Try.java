@@ -19,9 +19,6 @@ package com.ticketmaster.exp.util;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
-/**
- * Created by dannwebster on 4/17/15.
- */
 public class Try<T> implements Callable<T> {
   private final Optional<T> value;
   private final Optional<Exception> exception;

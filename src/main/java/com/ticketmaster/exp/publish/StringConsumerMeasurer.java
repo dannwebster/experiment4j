@@ -18,13 +18,9 @@ package com.ticketmaster.exp.publish;
 
 import com.ticketmaster.exp.util.Assert;
 
-import java.io.PrintStream;
 import java.time.Duration;
 import java.util.function.Consumer;
 
-/**
- * Created by dannwebster on 4/18/15.
- */
 public class StringConsumerMeasurer implements Measurer<String> {
 
   private final Consumer<String> stringConsumer;

@@ -18,9 +18,6 @@ package com.ticketmaster.exp.publish;
 
 import java.io.PrintStream;
 
-/**
- * Created by dannwebster on 5/28/15.
- */
 public class PrintStreamPublisher<T> extends StringConsumerPublisher<T> {
 
   public PrintStreamPublisher() {

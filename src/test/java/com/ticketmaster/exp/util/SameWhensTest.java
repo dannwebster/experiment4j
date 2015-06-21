@@ -23,9 +23,6 @@ import java.util.function.BiFunction;
 
 import static org.junit.Assert.assertEquals;
 
-/**
- * Created by dannwebster on 4/19/15.
- */
 public class SameWhensTest {
   // remove coverage noise
   SameWhens sameWhens = new SameWhens();

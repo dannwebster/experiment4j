@@ -21,9 +21,6 @@ import com.ticketmaster.exp.util.Try;
 
 import java.time.Duration;
 
-/**
- * Created by dannwebster on 10/12/14.
- */
 public class TrialResult<T> {
   private final TrialType trialType;
   private final Duration duration;

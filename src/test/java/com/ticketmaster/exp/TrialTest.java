@@ -17,21 +17,19 @@
 package com.ticketmaster.exp;
 
 import com.ticketmaster.exp.util.ReturnChoices;
-import com.ticketmaster.exp.util.SameWhens;
 import com.ticketmaster.exp.util.Selectors;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.mockito.Matchers;
 
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.concurrent.Executors;
 import java.util.function.Function;
 
-import static com.ticketmaster.exp.util.Selectors.always;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -39,182 +37,131 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Created by dannwebster on 10/12/14.
- */
-
 public class TrialTest {
   public static final String ARGS = "foo";
 
   Function<String, String> candidate = mock(Function.class);
   Function<String, String> control = mock(Function.class);
-  Publisher<String> p = mock(Publisher.class);
-  Clock c = mock(Clock.class);
+  Publisher<String> publisher = mock(Publisher.class);
+  Clock clock = mock(Clock.class);
 
   @Before
   public void setUp() throws Exception {
-    when(c.instant()).thenAnswer((inv) -> Instant.EPOCH);
+    when(clock.instant()).thenAnswer((inv) -> Instant.EPOCH);
     when(candidate.apply(any())).thenReturn("candidate");
     when(control.apply(any())).thenReturn("control");
   }
 
   @Test
-  public void testSimpleCallsPublish() throws Exception {
-
+  public void testOnlyControlWhenDoExperimentReturnsFalse() throws Exception {
     // GIVEN
-    Function<String, String> e = Trial.<String, String>simple("my simple experiment")
-        .control(control)
-        .candidate(candidate)
-        .timedBy(c)
-        .publishedBy(p)
-        .get();
+    Trial<String, String> subject = new Trial(
+        "trial",
+        control,
+        candidate,
+        Executors.newSingleThreadExecutor(),
+        ReturnChoices.alwaysCandidate(),
+        Selectors.never(),
+        Objects::equals,
+        Objects::equals,
+        publisher,
+        clock
+        );
+
 
     // WHEN
-    String s = e.apply(ARGS);
+    String output = subject.apply("input");
 
     // THEN
-    assertEquals("control", s);
-    verify(p, times(1)).publish(Matchers.eq(MatchType.MISMATCH), Matchers.any(Result.class));
-    verify(candidate, times(1)).apply(ARGS);
-    verify(control, times(1)).apply(ARGS);
+    assertEquals("trial", subject.getName());
+    assertEquals("control", output);
+    verify(control, times(1)).apply("input");
+    verify(candidate, never()).apply(anyString());
+
   }
 
   @Test
-  public void testExperimentCallsPublishWithMatch() throws Exception {
-
+  public void testOnlyControlWhenDoExperimentReturnsTrueAndAlwaysCandidateValue() throws Exception {
     // GIVEN
-    when(candidate.apply(any())).thenReturn("control");
-    Trial<String, String, String> e = Trial.<String, String, String>named("my experiment")
-        .control(control)
-        .candidate(candidate)
-        .timedBy(c)
-        .simplifiedBy(a -> a)
-        .publishedBy(p)
-        .get();
+    Trial<String, String> subject = new Trial(
+        "trial",
+        control,
+        candidate,
+        Executors.newSingleThreadExecutor(),
+        ReturnChoices.alwaysCandidate(),
+        Selectors.always(),
+        Objects::equals,
+        Objects::equals,
+        publisher,
+        clock
+    );
+
 
     // WHEN
-    String s = e.apply(ARGS);
+    String output = subject.apply("input");
 
     // THEN
-    assertEquals("control", s);
-    verify(p, times(1)).publish(Matchers.eq(MatchType.MATCH), Matchers.any(Result.class));
-    verify(candidate, times(1)).apply(ARGS);
-    verify(control, times(1)).apply(ARGS);
+    assertEquals("trial", subject.getName());
+    assertEquals("candidate", output);
+    verify(control, times(1)).apply("input");
+    verify(candidate, times(1)).apply("input");
+    verify(publisher, times(1)).publish(eq(MatchType.MISMATCH), any(Result.class));
   }
 
   @Test
-  public void testReturnCandidate() throws Exception {
-
+  public void testOnlyControlWhenDoExperimentReturnsTrueAndAlwaysControlValue() throws Exception {
     // GIVEN
-    Trial<String, String, String> e = Trial.<String, String, String>named("my experiment")
-        .control(control)
-        .candidate(candidate)
-        .timedBy(c)
-        .simplifiedBy(a -> a)
-        .returnChoice(ReturnChoices.alwaysCandidate())
-        .publishedBy(p)
-        .get();
+    Trial<String, String> subject = new Trial(
+        "trial",
+        control,
+        candidate,
+        Executors.newSingleThreadExecutor(),
+        ReturnChoices.alwaysControl(),
+        Selectors.always(),
+        Objects::equals,
+        Objects::equals,
+        publisher,
+        clock
+    );
+
 
     // WHEN
-    String s = e.apply(ARGS);
+    String output = subject.apply("input");
 
     // THEN
-    assertEquals("candidate", s);
-    verify(p, times(1)).publish(Matchers.eq(MatchType.MISMATCH), Matchers.any(Result.class));
-    verify(candidate, times(1)).apply(ARGS);
-    verify(control, times(1)).apply(ARGS);
+    assertEquals("trial", subject.getName());
+    assertEquals("control", output);
+    verify(control, times(1)).apply("input");
+    verify(candidate, times(1)).apply("input");
+    verify(publisher, times(1)).publish(eq(MatchType.MISMATCH), any(Result.class));
   }
 
   @Test
-  public void testIgnoreExperiment() throws Exception {
-
+  public void testTestOutputWhen() throws Exception {
+    when(candidate.apply(anyString())).thenThrow(new IllegalArgumentException());
     // GIVEN
-    Trial<String, String, String> e = Trial.<String, String, String>named("my experiment")
-        .control(control)
-        .candidate(candidate)
-        .timedBy(c)
-        .simplifiedBy(a -> a)
-        .doExperimentWhen(Selectors.never())
-        .publishedBy(p)
-        .get();
+    Trial<String, String> subject = new Trial(
+        "trial",
+        control,
+        candidate,
+        Executors.newSingleThreadExecutor(),
+        ReturnChoices.alwaysControl(),
+        Selectors.always(),
+        Objects::equals,
+        Objects::equals,
+        publisher,
+        clock
+    );
+
 
     // WHEN
-    String s = e.apply(ARGS);
+    String output = subject.apply("input");
 
     // THEN
-    assertEquals("control", s);
-    verify(control, times(1)).apply(ARGS);
-    verify(candidate, never()).apply(ARGS);
-    verify(p, never()).publish(any(), any());
-  }
-
-  @Rule
-  public ExpectedException ex = ExpectedException.none();
-
-  @Test
-  public void testFailsOnControlFailure() throws Exception {
-
-    // GIVEN
-    when(control.apply(ARGS)).thenThrow(new IllegalArgumentException("control failed"));
-
-    Trial<String, String, String> e = Trial.<String, String, String>named("my experiment")
-        .control(control)
-        .candidate(candidate)
-        .timedBy(c)
-        .simplifiedBy(a -> a)
-        .doExperimentWhen(Selectors.never())
-        .publishedBy(p)
-        .get();
-
-    // EXPECT
-    ex.expect(IllegalArgumentException.class);
-    ex.expectMessage("control failed");
-
-    // WHEN
-    String s = e.apply(ARGS);
-  }
-
-  @Test
-  public void testSucceedsOnCandiateFailure() throws Exception {
-
-    // GIVEN
-    when(candidate.apply(ARGS)).thenThrow(new IllegalArgumentException("control failed"));
-
-    Trial<String, String, String> e = Trial.<String, String, String>named("my experiment")
-        .control(control)
-        .candidate(candidate)
-        .simplifiedBy(a -> a)
-        .doExperimentWhen(Selectors.never())
-        .sameWhen(Objects::equals)
-        .exceptionsSameWhen(SameWhens.classesMatch())
-        .publishedBy(p)
-        .get();
-
-    // WHEN
-    String s = e.apply(ARGS);
-
-    // THEN
-    assertEquals("control", s);
-    verify(control, times(1)).apply(ARGS);
-    verify(candidate, never()).apply(ARGS);
-    verify(p, never()).publish(any(), any());
-  }
-
-  @Test
-  public void testExperimentsShouldPerformMethodsSeriallyWhenSerialDoSeriallyWhenReturnsTrue() throws Exception {
-
-    // GIVEN
-    Trial<String, String, String> e = Trial.<String, String>simple("my experiment")
-        .control(control)
-        .candidate(candidate)
-        .doSeriallyWhen(always())
-        .publishedBy(p)
-        .get();
-
-    // WHEN
-
-    // THEN
-
-
+    assertEquals("trial", subject.getName());
+    assertEquals("control", output);
+    verify(control, times(1)).apply("input");
+    verify(candidate, times(1)).apply("input");
+    verify(publisher, times(1)).publish(eq(MatchType.CANDIDATE_EXCEPTION), any(Result.class));
   }
 }

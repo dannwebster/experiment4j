@@ -21,9 +21,6 @@ import com.ticketmaster.exp.TrialType;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
-/**
- * Created by dannwebster on 4/19/15.
- */
 public class ReturnChoices {
   ReturnChoices() {
   }

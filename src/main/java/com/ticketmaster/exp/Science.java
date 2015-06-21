@@ -16,18 +16,13 @@
 
 package com.ticketmaster.exp;
 
-import com.ticketmaster.exp.util.Assert;
-
 import java.util.Collections;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
-/**
- * Created by dannwebster on 4/18/15.
- */
 public class Science {
-  private final Map<String, ExperimentBuilder> cache = new ConcurrentHashMap<>();
+  private final Map<String, Experiment> cache = new ConcurrentHashMap<>();
 
   public static final Science INSTANCE = new Science();
 
@@ -38,35 +33,16 @@ public class Science {
     return INSTANCE;
   }
 
-  public <I, O> O doExperiment(String name, I args) throws Exception {
-    return (O) getExperiment(name)
-        .orElseGet(() -> null)
-        .apply(args);
+  <I, O> Experiment<I, O> experiment(String name, Supplier<Experiment<I, O>> experimentSupplier) {
+    return cache.computeIfAbsent(name, (key) -> experimentSupplier.get() );
   }
 
-  public void addExperiment(ExperimentBuilder experimentBuilder) {
-    Assert.notNull(experimentBuilder, "experimentBuilder must be non-null");
-    if (!cache.containsKey(experimentBuilder.getName())) {
-      cache.put(experimentBuilder.getName(), experimentBuilder);
-    } else {
-      throw new IllegalArgumentException("experimentBuilder for name " +
-          experimentBuilder.getName() + " already exists");
-    }
-  }
 
-  public <I, O, M> Optional<Trial<I, O, M>> getExperiment(String name) {
-    Optional<Trial<I, O, M>> opt = Optional.empty();
-    if (cache.containsKey(name)) {
-      opt = Optional.of(cache.get(name).get());
-    }
-    return opt;
-  }
-
-  public Map<String, ExperimentBuilder> experiments() {
+  public Map<String, Experiment> experiments() {
     return Collections.unmodifiableMap(cache);
   }
 
-  public void getClearExperiments() {
+  public void clearExperiments() {
     cache.clear();
   }
 

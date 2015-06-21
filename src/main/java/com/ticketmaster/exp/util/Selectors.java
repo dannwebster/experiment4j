@@ -20,10 +20,11 @@ import java.time.Instant;
 import java.util.Random;
 import java.util.function.BooleanSupplier;
 import java.util.function.IntSupplier;
-import java.util.function.Supplier;
 
 public class Selectors {
 
+  public static final int MAX_PERCENT = 100;
+  public static final int MAX_PERMILLE = 1000;
 
   public static class ModInt implements IntSupplier {
     private final IntSupplier supplier;
@@ -50,18 +51,22 @@ public class Selectors {
     }
   }
 
-  public static class Per implements BooleanSupplier {
+  public static class LessThanThreshhold implements BooleanSupplier {
     private final IntSupplier valueSupplier;
     private final IntSupplier thresholdSupplier;
 
     @Override
     public boolean getAsBoolean() {
-      int value = valueSupplier.getAsInt();
       int threshold = thresholdSupplier.getAsInt();
-      return value < threshold;
+      if (threshold == 0) {
+        return false;
+      } else {
+        int value = valueSupplier.getAsInt();
+        return value <= threshold;
+      }
     }
 
-    public Per(IntSupplier thresholdSupplier, IntSupplier valueSupplier) {
+    public LessThanThreshhold(IntSupplier thresholdSupplier, IntSupplier valueSupplier) {
       this.thresholdSupplier = thresholdSupplier;
       this.valueSupplier = valueSupplier;
     }
@@ -91,46 +96,42 @@ public class Selectors {
   }
 
   public static BooleanSupplier dynamicPerDenom(int denominator, IntSupplier thresholdSupplier) {
-    return new Per(
+    return new LessThanThreshhold(
         new ModInt(thresholdSupplier, denominator),
         new ModInt(new RandomInts(), denominator));
   }
 
   public static BooleanSupplier permille(int permille) {
-    Assert.between(permille, 0, 1000 + 1);
-    int finalPermille = permille == 1000 ? 999 : permille;
-    return dynamicPermille(() -> finalPermille);
+    Assert.between(permille, 0, MAX_PERMILLE);
+    return dynamicPermille(() -> permille);
   }
 
   public static BooleanSupplier percent(int percent) {
-    Assert.between(percent, 0, 100 + 1);
-    int finalPercent = percent == 100 ? 99 : percent;
-    return dynamicPercent(() -> finalPercent);
+    Assert.between(percent, 0, MAX_PERCENT);
+    return dynamicPercent(() -> percent);
   }
 
   public static BooleanSupplier dynamicPercentOfObjectHash(
-      IntSupplier thresholdSupplier, Supplier objectSupplier) {
-    return new Per(
-        new ModInt(thresholdSupplier, 100),
-        new ModInt(() -> objectSupplier.get().hashCode(), 100));
+      IntSupplier thresholdSupplier, Object object) {
+    return new LessThanThreshhold(
+        new ModInt(thresholdSupplier, MAX_PERCENT),
+        new ModInt(() -> object.hashCode(), MAX_PERCENT));
   }
 
   public static BooleanSupplier dynamicPermilleOfObjectHash(
-      IntSupplier thresholdSupplier, Supplier objectSupplier) {
-    return new Per(
-        new ModInt(thresholdSupplier, 1000),
-        new ModInt(() -> objectSupplier.get().hashCode(), 1000));
+      IntSupplier thresholdSupplier, Object object) {
+    return new LessThanThreshhold(
+        new ModInt(thresholdSupplier, MAX_PERMILLE),
+        new ModInt(() -> object.hashCode(), MAX_PERMILLE));
   }
 
-  public static BooleanSupplier percentOfObjectHash(int percent, Supplier objectSupplier) {
-    Assert.between(percent, 0, 100 + 1);
-    int finalPercent = percent == 100 ? 99 : percent;
-    return dynamicPercentOfObjectHash(() -> finalPercent, objectSupplier);
+  public static BooleanSupplier percentOfObjectHash(int percent, Object object) {
+    Assert.between(percent, 0, MAX_PERCENT);
+    return dynamicPercentOfObjectHash(() -> percent, object);
   }
 
-  public static BooleanSupplier permilleOfObjectHash(int permille, Supplier objectSupplier) {
-    Assert.between(permille, 0, 1000 + 1);
-    int finalPermille = permille == 1000 ? 999 : permille;
-    return dynamicPermilleOfObjectHash(() -> finalPermille, objectSupplier);
+  public static BooleanSupplier permilleOfObjectHash(int permille, Object object) {
+    Assert.between(permille, 0, MAX_PERMILLE);
+    return dynamicPermilleOfObjectHash(() -> permille, object);
   }
 }

@@ -16,24 +16,21 @@
 
 package com.ticketmaster.exp.publish;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import org.junit.Test;
 
-public class ConcurrentMapMatchCounter<K> implements MatchCounter<K> {
-  private final Map<K, Integer> counts = new ConcurrentHashMap<>();
+import static com.ticketmaster.exp.publish.DurationNamer.DurationType;
+import static org.junit.Assert.assertEquals;
 
-  public Integer getMatchCount(K matchKey) {
-    return counts.get(matchKey);
-  }
+public class DurationTypeTest {
+  @Test
+  public void testValueOf() throws Exception {
+    // EXPECT
+    assertEquals(DurationType.CANDIDATE, DurationType.valueOf("CANDIDATE"));
+    assertEquals(DurationType.CONTROL, DurationType.valueOf("CONTROL"));
+    assertEquals(DurationType.IMPROVEMENT, DurationType.valueOf("IMPROVEMENT"));
+    assertEquals(3, DurationType.values().length);
 
-  public int getAndIncrement(K matchKey, int count) {
-    int matchCount = counts.compute(matchKey, (key, value) -> value == null ? count : count + value);
-    return matchCount;
-  }
 
-  public Map<K, Integer> getCounts() {
-    return Collections.unmodifiableMap(counts);
   }
 
 }

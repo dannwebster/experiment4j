@@ -20,9 +20,6 @@ import com.ticketmaster.exp.MatchType;
 
 import java.util.Locale;
 
-/**
- * Created by dannwebster on 4/18/15.
- */
 public class PatternMatchCountNamer implements MatchCountNamer<String> {
   public static final String DEFAULT_PATTERN = "exp.%s.match.type.%s.count";
   public static final PatternMatchCountNamer DEFAULT = from(DEFAULT_PATTERN);

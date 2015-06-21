@@ -31,9 +31,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-/**
- * @author dannwebster
- */
 public class PublisherTest {
   @Test
   public void testPublisherSyntax() throws Exception {
@@ -49,8 +46,7 @@ public class PublisherTest {
     Result<String> result = new Result(
         "experiment",
         Instant.now(),
-        new TrialResult(CANDIDATE, candidateD, null, "foo"),
-        new TrialResult(CONTROL, controlD, null, "bar")
+        new TrialResult(CONTROL, controlD, null, "bar"), new TrialResult(CANDIDATE, candidateD, null, "foo")
     );
 
     // WHEN

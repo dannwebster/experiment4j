@@ -24,9 +24,6 @@ import java.util.concurrent.Callable;
 
 import static org.junit.Assert.assertEquals;
 
-/**
- * Created by dannwebster on 4/18/15.
- */
 public class TryTest {
   @Rule
   public ExpectedException ex = ExpectedException.none();
