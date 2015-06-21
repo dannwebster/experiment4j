@@ -20,9 +20,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
-/**
- * Created by dannwebster on 4/17/15.
- */
 public class Duple<E> {
   private final E element1;
   private final E element2;

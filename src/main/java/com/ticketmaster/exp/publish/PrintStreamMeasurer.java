@@ -18,9 +18,6 @@ package com.ticketmaster.exp.publish;
 
 import java.io.PrintStream;
 
-/**
- * Created by dannwebster on 6/15/15.
- */
 public class PrintStreamMeasurer extends StringConsumerMeasurer{
 
   public static final PrintStreamMeasurer DEFAULT = new PrintStreamMeasurer(

@@ -16,13 +16,8 @@
 
 package com.ticketmaster.exp.publish;
 
-import com.ticketmaster.exp.TrialType;
-
 import java.util.Locale;
 
-/**
- * Created by dannwebster on 4/18/15.
- */
 public class PatternDurationNamer implements DurationNamer<String> {
   public static final String DEFAULT_PATTERN = "exp.%s.trial.type.%s.dur";
   public static final PatternDurationNamer DEFAULT = from(DEFAULT_PATTERN);
@@ -38,8 +33,8 @@ public class PatternDurationNamer implements DurationNamer<String> {
   }
 
   @Override
-  public String name(String experimentName, TrialType trialType) {
+  public String name(String experimentName, DurationType DurationType) {
     return String.format(pattern, experimentName,
-        trialType.name().toLowerCase(Locale.getDefault()));
+        DurationType.name().toLowerCase(Locale.getDefault()));
   }
 }

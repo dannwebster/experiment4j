@@ -17,27 +17,28 @@
 package com.ticketmaster.exp;
 
 import com.ticketmaster.exp.util.Assert;
-import com.ticketmaster.exp.util.Try;
 
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
 import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+
+import static com.ticketmaster.exp.MatchType.CANDIDATE_EXCEPTION;
+import static com.ticketmaster.exp.MatchType.CONTROL_EXCEPTION;
+import static com.ticketmaster.exp.MatchType.EXCEPTION_MATCH;
+import static com.ticketmaster.exp.MatchType.EXCEPTION_MISMATCH;
+import static com.ticketmaster.exp.MatchType.MATCH;
+import static com.ticketmaster.exp.MatchType.MISMATCH;
 
 public class Result<T> {
 
   private final String name;
   private final Instant timestamp;
-  private final TrialResult<T> candidateResult;
   private final TrialResult<T> controlResult;
+  private final TrialResult<T> candidateResult;
 
   public Result(String name,
                 Instant timestamp,
-                TrialResult<T> candidateResult,
-                TrialResult<T> controlResult) {
+                TrialResult<T> controlResult,
+                TrialResult<T> candidateResult) {
 
     Assert.hasText(name, "name must be non-empty");
     Assert.notNull(timestamp, "timestamp must be non-null");
@@ -45,8 +46,51 @@ public class Result<T> {
     Assert.notNull(candidateResult, "candidateResult must be non-null");
     this.name = name;
     this.timestamp = timestamp;
-    this.candidateResult = candidateResult;
     this.controlResult = controlResult;
+    this.candidateResult = candidateResult;
+  }
+
+  public MatchType determineMatch(BiFunction<T, T, Boolean> sameWhen,
+                                      BiFunction<? super Exception, ? super Exception, Boolean>
+                                          exceptionsSameWhen) {
+    MatchType matchType;
+    if (bothReturnedValues()) {
+      matchType = valuesMatch(sameWhen) ? MATCH : MISMATCH;
+
+    } else if (bothThrewExceptions()) {
+      matchType = exceptionsMatch(exceptionsSameWhen) ? EXCEPTION_MATCH : EXCEPTION_MISMATCH;
+
+    } else {
+      matchType = controlThrewException() ? CONTROL_EXCEPTION : CANDIDATE_EXCEPTION;
+    }
+    return matchType;
+  }
+
+  boolean controlThrewException() {
+    return controlResult.getTryResult().isFailure();
+  }
+
+  boolean bothReturnedValues() {
+    return candidateResult.getTryResult().isSuccess() &&
+        controlResult.getTryResult().isSuccess();
+  }
+
+  boolean bothThrewExceptions() {
+    return candidateResult.getTryResult().isFailure() &&
+        controlResult.getTryResult().isFailure();
+  }
+
+  boolean valuesMatch(BiFunction<T, T, Boolean> sameWhen) {
+    T controlValue = controlResult.getTryResult().value().get();
+    T candiateValue = candidateResult.getTryResult().value().get();
+    return sameWhen.apply(controlValue, candiateValue);
+  }
+
+  boolean exceptionsMatch(
+      BiFunction<? super Exception, ? super Exception, Boolean> exceptionsSameWhen) {
+    Exception controlException = controlResult.getTryResult().exception().get();
+    Exception candiateException = candidateResult.getTryResult().exception().get();
+    return exceptionsSameWhen.apply(controlException, candiateException);
   }
 
   public String getName() {
@@ -63,50 +107,5 @@ public class Result<T> {
 
   public TrialResult<T> getControlResult() {
     return controlResult;
-  }
-
-  public <M> MatchType determineMatch(Function<T, M> simplifier,
-                                      BiFunction<M, M, Boolean> sameWhen,
-                                      BiFunction<? super Exception, ? super Exception, Boolean>
-                                          exceptionsSameWhen) {
-    List<M> values = Arrays
-        .asList(this.getCandidateResult(), this.getControlResult())
-        .stream()
-        .map(TrialResult::getTryResult)
-        .filter(Try::isSuccess)
-        .map(Try::value)
-        .map(Optional::get)
-        .map(t -> simplifier.apply(t))
-        .collect(Collectors.toList());
-
-    MatchType matchType;
-    if (values.size() == 2) {
-      if (sameWhen.apply(values.get(0), values.get(1))) {
-        matchType = MatchType.MATCH;
-      } else {
-        matchType = MatchType.MISMATCH;
-      }
-    } else {
-      List<Exception> exceptions = Arrays
-          .asList(this.getCandidateResult(), this.getControlResult())
-          .stream()
-          .map(TrialResult::getTryResult)
-          .filter(Try::isFailure)
-          .map(Try::exception)
-          .map(Optional::get)
-          .collect(Collectors.toList());
-      if (exceptions.size() == 2) {
-        if (exceptionsSameWhen.apply(exceptions.get(0), exceptions.get(1))) {
-          matchType = MatchType.EXCEPTION_MATCH;
-        } else {
-          matchType = MatchType.EXCEPTION_MISMATCH;
-        }
-      } else {
-        matchType = (candidateResult.getTryResult().isFailure())
-            ?
-            MatchType.CANDIDATE_EXCEPTION : MatchType.CONTROL_EXCEPTION;
-      }
-    }
-    return matchType;
   }
 }

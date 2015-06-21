@@ -18,13 +18,9 @@ package com.ticketmaster.exp;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-/**
- * Created by dannwebster on 4/18/15.
- */
 public class Science {
   private final Map<String, Experiment> cache = new ConcurrentHashMap<>();
 
@@ -37,26 +33,16 @@ public class Science {
     return INSTANCE;
   }
 
-  public <I, O> O doExperiment(String name, I args) throws Exception {
-    return (O) getExperiment(name)
-        .orElseGet(() -> null)
-        .apply(args);
+  <I, O> Experiment<I, O> experiment(String name, Supplier<Experiment<I, O>> experimentSupplier) {
+    return cache.computeIfAbsent(name, (key) -> experimentSupplier.get() );
   }
 
-  public <I, O, M> Experiment<I, O, M> experiment(
-      String name, Supplier<? extends Experiment> experimentBuilder) {
-    return cache.computeIfAbsent(name, (key) -> experimentBuilder.get());
-  }
-
-  public <I, O, M> Optional<Experiment<I, O, M>> getExperiment(String name) {
-    return Optional.ofNullable(cache.get(name));
-  }
 
   public Map<String, Experiment> experiments() {
     return Collections.unmodifiableMap(cache);
   }
 
-  public void getClearExperiments() {
+  public void clearExperiments() {
     cache.clear();
   }
 

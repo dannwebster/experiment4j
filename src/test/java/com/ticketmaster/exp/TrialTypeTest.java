@@ -27,8 +27,7 @@ public class TrialTypeTest {
     // EXPECT
     assertEquals(TrialType.CANDIDATE, TrialType.valueOf("CANDIDATE"));
     assertEquals(TrialType.CONTROL, TrialType.valueOf("CONTROL"));
-    assertEquals(TrialType.IMPROVEMENT, TrialType.valueOf("IMPROVEMENT"));
-    assertEquals(3, TrialType.values().length);
+    assertEquals(2, TrialType.values().length);
 
 
   }

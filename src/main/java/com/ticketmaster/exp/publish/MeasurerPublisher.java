@@ -19,17 +19,11 @@ package com.ticketmaster.exp.publish;
 import com.ticketmaster.exp.MatchType;
 import com.ticketmaster.exp.Publisher;
 import com.ticketmaster.exp.Result;
+import com.ticketmaster.exp.publish.DurationNamer.DurationType;
 import com.ticketmaster.exp.util.Assert;
 
 import java.time.Duration;
 
-import static com.ticketmaster.exp.TrialType.CANDIDATE;
-import static com.ticketmaster.exp.TrialType.CONTROL;
-import static com.ticketmaster.exp.TrialType.IMPROVEMENT;
-
-/**
- * Created by dannwebster on 10/12/14.
- */
 public class MeasurerPublisher<K> implements Publisher {
   public static final MeasurerPublisher<String> DEFAULT = MeasurerPublisher.<String>builder()
       .durationNamer(PatternDurationNamer.DEFAULT)
@@ -93,8 +87,8 @@ public class MeasurerPublisher<K> implements Publisher {
     Duration controlDuration = payload.getControlResult().getDuration();
     Duration candidateDuration = payload.getCandidateResult().getDuration();
     Duration difference = controlDuration.minus(candidateDuration);
-    measurer.measureDuration(durationNamer.name(name, CONTROL), controlDuration);
-    measurer.measureDuration(durationNamer.name(name, CANDIDATE), candidateDuration);
-    measurer.measureDuration(durationNamer.name(name, IMPROVEMENT), difference);
+    measurer.measureDuration(durationNamer.name(name, DurationType.CONTROL), controlDuration);
+    measurer.measureDuration(durationNamer.name(name, DurationType.CANDIDATE), candidateDuration);
+    measurer.measureDuration(durationNamer.name(name, DurationType.IMPROVEMENT), difference);
   }
 }

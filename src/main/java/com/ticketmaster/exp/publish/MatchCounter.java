@@ -18,9 +18,6 @@ package com.ticketmaster.exp.publish;
 
 import java.util.Map;
 
-/**
- * Created by dannwebster on 4/19/15.
- */
 public interface MatchCounter<K> {
   public Integer getMatchCount(K matchKey);
 

@@ -42,8 +42,8 @@ public class ResultTest {
     Result<String> result = new Result<>(
         "exp",
         inst,
-        candidate,
-        control);
+        control, candidate
+    );
 
     // THEN
     assertEquals(candidate, result.getCandidateResult());
@@ -58,10 +58,10 @@ public class ResultTest {
     // GIVEN
     TrialResult<String> controlTrialResult = new TrialResult<>(TrialType.CONTROL, Duration.ofMillis(1), null, "foo");
     TrialResult<String> candidateTrialResult = new TrialResult<>(TrialType.CANDIDATE, Duration.ofMillis(1), null, "bar");
-    Result<String> result = new Result<>("exp", Instant.now(), candidateTrialResult, controlTrialResult);
+    Result<String> result = new Result<>("exp", Instant.now(), controlTrialResult, candidateTrialResult);
 
     // WHEN
-    MatchType matchType = result.determineMatch(a -> a, Object::equals, Objects::equals);
+    MatchType matchType = result.determineMatch(Object::equals, Objects::equals);
 
     // THEN
     assertEquals(MatchType.MISMATCH, matchType);
@@ -74,10 +74,10 @@ public class ResultTest {
         null, "foo");
     TrialResult<String> candidateTrialResult = new TrialResult<>(TrialType.CANDIDATE, Duration.ofMillis(1),
         null, "foo");
-    Result<String> result = new Result<>("exp", Instant.now(), candidateTrialResult, controlTrialResult);
+    Result<String> result = new Result<>("exp", Instant.now(), controlTrialResult, candidateTrialResult);
 
     // WHEN
-    MatchType matchType = result.determineMatch(a -> a, Object::equals, Objects::equals);
+    MatchType matchType = result.determineMatch(Object::equals, Objects::equals);
 
     // THEN
     assertEquals(MatchType.MATCH, matchType);
@@ -90,10 +90,10 @@ public class ResultTest {
         null, "foo");
     TrialResult<String> candidateTrialResult = new TrialResult<>(TrialType.CANDIDATE, Duration.ofMillis(1),
         new IllegalArgumentException(), null);
-    Result<String> result = new Result<>("exp", Instant.now(), candidateTrialResult, controlTrialResult);
+    Result<String> result = new Result<>("exp", Instant.now(), controlTrialResult, candidateTrialResult);
 
     // WHEN
-    MatchType matchType = result.determineMatch(a -> a, Object::equals, Objects::equals);
+    MatchType matchType = result.determineMatch(Object::equals, Objects::equals);
 
     // THEN
     assertEquals(MatchType.CANDIDATE_EXCEPTION, matchType);
@@ -106,10 +106,10 @@ public class ResultTest {
         new IllegalArgumentException(), null);
     TrialResult<String> candidateTrialResult = new TrialResult<>(TrialType.CANDIDATE, Duration.ofMillis(1),
         null, "foo");
-    Result<String> result = new Result<>("exp", Instant.now(), candidateTrialResult, controlTrialResult);
+    Result<String> result = new Result<>("exp", Instant.now(), controlTrialResult, candidateTrialResult);
 
     // WHEN
-    MatchType matchType = result.determineMatch(a -> a, Object::equals, Objects::equals);
+    MatchType matchType = result.determineMatch(Object::equals, Objects::equals);
 
     // THEN
     assertEquals(MatchType.CONTROL_EXCEPTION, matchType);
@@ -122,10 +122,10 @@ public class ResultTest {
         new IllegalArgumentException(), null);
     TrialResult<String> candidateTrialResult = new TrialResult<>(TrialType.CANDIDATE, Duration.ofMillis(1),
         new IllegalArgumentException(), null);
-    Result<String> result = new Result<>("exp", Instant.now(), candidateTrialResult, controlTrialResult);
+    Result<String> result = new Result<>("exp", Instant.now(), controlTrialResult, candidateTrialResult);
 
     // WHEN
-    MatchType matchType = result.determineMatch(a -> a, Object::equals, SameWhens.classesMatch());
+    MatchType matchType = result.determineMatch(Object::equals, SameWhens.classesMatch());
 
     // THEN
     assertEquals(MatchType.EXCEPTION_MATCH, matchType);
@@ -138,10 +138,10 @@ public class ResultTest {
         new ArrayIndexOutOfBoundsException(), null);
     TrialResult<String> candidateTrialResult = new TrialResult<>(TrialType.CANDIDATE, Duration.ofMillis(1),
         new IllegalArgumentException(), null);
-    Result<String> result = new Result<>("exp", Instant.now(), candidateTrialResult, controlTrialResult);
+    Result<String> result = new Result<>("exp", Instant.now(), controlTrialResult, candidateTrialResult);
 
     // WHEN
-    MatchType matchType = result.determineMatch(a -> a, Object::equals, Objects::equals);
+    MatchType matchType = result.determineMatch(Object::equals, Objects::equals);
 
     // THEN
     assertEquals(MatchType.EXCEPTION_MISMATCH, matchType);

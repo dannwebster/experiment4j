@@ -44,7 +44,7 @@ public class ReturnChoicesTest {
   public void testAlwaysControlShouldAlwaysReturnControl() throws Exception {
 
     // GIVEN
-    Result<String> result = new Result<>("exp", instant, goodCandidate, goodControl);
+    Result<String> result = new Result<>("exp", instant, goodControl, goodCandidate);
 
     // WHEN
     Try<String> t = ReturnChoices.<String>alwaysControl().apply(result);
@@ -58,7 +58,7 @@ public class ReturnChoicesTest {
   public void testAlwaysCandidateShouldAlwaysReturnCandidate() throws Exception {
 
     // GIVEN
-    Result<String> result = new Result<>("exp", instant, goodCandidate, goodControl);
+    Result<String> result = new Result<>("exp", instant, goodControl, goodCandidate);
 
     // WHEN
     Try<String> t = ReturnChoices.<String>alwaysCandidate().apply(result);
@@ -71,7 +71,7 @@ public class ReturnChoicesTest {
   public void testFindFastestShouldReturnFastest() throws Exception {
 
     // GIVEN
-    Result<String> result = new Result<>("exp", instant, goodCandidate, goodControl);
+    Result<String> result = new Result<>("exp", instant, goodControl, goodCandidate);
 
     // WHEN
     Try<String> t = ReturnChoices.<String>findFastest().apply(result);
@@ -86,7 +86,7 @@ public class ReturnChoicesTest {
   public void testFindFastestShouldReturnFastestCandidate() throws Exception {
 
     // GIVEN
-    Result<String> result = new Result<>("exp", instant, fasterGoodCandidate, goodControl);
+    Result<String> result = new Result<>("exp", instant, goodControl, fasterGoodCandidate);
 
     // WHEN
     Try<String> t = ReturnChoices.<String>findFastest().apply(result);
@@ -100,7 +100,7 @@ public class ReturnChoicesTest {
   public void testFindBestShouldReturnFastestWhenBothAreGood() throws Exception {
 
     // GIVEN
-    Result<String> result = new Result<>("exp", instant, goodCandidate, goodControl);
+    Result<String> result = new Result<>("exp", instant, goodControl, goodCandidate);
 
     // WHEN
     Try<String> choice = ReturnChoices.<String>findBest().apply(result);
@@ -112,7 +112,7 @@ public class ReturnChoicesTest {
   @Test
   public void testFindBestShouldReturnNonErrorCandidate() throws Exception {
     // GIVEN
-    Result<String> badControlResult = new Result<>("exp", instant, goodCandidate, badControl);
+    Result<String> badControlResult = new Result<>("exp", instant, badControl, goodCandidate);
 
     // WHEN
     Try<String> choice = ReturnChoices.<String>findBest().apply(badControlResult);
@@ -124,7 +124,7 @@ public class ReturnChoicesTest {
   @Test
   public void testFindBestShouldReturnNonErrorControl() throws Exception {
     // GIVEN
-    Result<String> badCandidateResult = new Result<>("exp", instant, badCandidate, goodControl);
+    Result<String> badCandidateResult = new Result<>("exp", instant, goodControl, badCandidate);
 
     // WHEN
     Try<String> choice = ReturnChoices.<String>findBest().apply(badCandidateResult);
@@ -136,7 +136,7 @@ public class ReturnChoicesTest {
   @Test
   public void testFindBestShouldControlWhenBothAreGoodAndSameSpeed() throws Exception {
     // GIVEN
-    Result<String> badCandidateResult = new Result<>("exp", instant, fastGoodCandidate, goodControl);
+    Result<String> badCandidateResult = new Result<>("exp", instant, goodControl, fastGoodCandidate);
 
     // WHEN
     Try<String> choice = ReturnChoices.<String>findBest().apply(badCandidateResult);
@@ -149,7 +149,7 @@ public class ReturnChoicesTest {
   public void testCandidateWhenReturnsCandidateWhenSelectorIsTrue() throws Exception {
 
     // GIVEN
-    Result<String> result = new Result<>("exp", instant, goodCandidate, goodControl);
+    Result<String> result = new Result<>("exp", instant, goodControl, goodCandidate);
 
     // WHEN
     Try<String> choice = ReturnChoices.<String>candidateWhen(Selectors.always()).apply(result);
@@ -162,7 +162,7 @@ public class ReturnChoicesTest {
   public void testCandidateWhenReturnsControlWhenSelectorIsFalse() throws Exception {
 
     // GIVEN
-    Result<String> result = new Result<>("exp", instant, goodCandidate, goodControl);
+    Result<String> result = new Result<>("exp", instant, goodControl, goodCandidate);
 
     // WHEN
     Try<String> choice = ReturnChoices.<String>candidateWhen(Selectors.never()).apply(result);

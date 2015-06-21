@@ -23,9 +23,6 @@ import com.ticketmaster.exp.util.Assert;
 
 import java.util.function.Consumer;
 
-/**
- * Created by dannwebster on 6/14/15.
- */
 public class StringConsumerPublisher<T> implements Publisher<T> {
 
   private final Consumer<String> stringConsumer;
