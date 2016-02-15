@@ -26,7 +26,8 @@ Domain Concepts
 ---------------
 There are only a few main domain concepts for this framework:
 
-* _Experiment_: a wrapper around 2 implementations of the same business logic: the _Control_ and the _Candidate_. The wrapper   
+* _Experiment_: A wrapper around 2 implementations of the same business logic: the _Control_ and the _Candidate_, along with how to run trials.
+* _Trial_: A run of an _Experiment_ that:
   1. Runs the _Control_ and _Candidate_ implementations in parallel (using a thread executor)
   2. Times the execution of both the _Control_ and _Candidate_
   3. Compares the results for equality
