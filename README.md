@@ -133,8 +133,8 @@ ExperimentExample.java
     Experiment<Person, String> myExperiment = Science.science()
                                                          .experiments()
                                                          .get("my experiment");
-        String authorName = myExperiment.trial()
-                                        .apply(new Person("Raymond", "Carver"));
+    String authorName = myExperiment.trial()
+                                    .apply(new Person("Raymond", "Carver"));
 
     assert authorName.equals("Raymond Carver");
 ```
