@@ -131,8 +131,8 @@ ExperimentExample.java
     // If you put an experiment in the Science cache, you can also get
     // it from there.
     Experiment<Person, String> myExperiment = Science.science()
-                                                         .experiments()
-                                                         .get("my experiment");
+                                                     .experiments()
+                                                     .get("my experiment");
     String authorName = myExperiment.trial()
                                     .apply(new Person("Raymond", "Carver"));
 
