@@ -33,7 +33,7 @@ public class Science {
     return INSTANCE;
   }
 
-  <I, O> Experiment<I, O> experiment(String name, Supplier<Experiment<I, O>> experimentSupplier) {
+  public <I, O> Experiment<I, O> experiment(String name, Supplier<Experiment<I, O>> experimentSupplier) {
     return cache.computeIfAbsent(name, (key) -> experimentSupplier.get() );
   }
 
