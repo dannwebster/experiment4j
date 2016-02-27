@@ -15,6 +15,7 @@
  */
 package com.ticketmaster.exp.util;
 
+import com.ticketmaster.exp.AsyncReturnChoice;
 import com.ticketmaster.exp.Result;
 import com.ticketmaster.exp.TrialType;
 
@@ -62,5 +63,14 @@ public class ReturnChoices {
         result.getCandidateResult().getTryResult().isFailure() ?
             result.getControlResult().getTryResult() :
             fastest.apply(result);
+  }
+  
+  public static class AlwaysControl<O> extends AsyncReturnChoice<O> {
+
+    @Override
+    public TrialType getReturnChoice() {
+        return TrialType.CONTROL;
+    }
+      
   }
 }
