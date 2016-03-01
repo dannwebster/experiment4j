@@ -62,6 +62,20 @@ public class Experiment<I, O> {
         this.publisher,
         this.clock);
   }
+  
+  public Trial<I, O> optimizedTrial() {
+    return new OptimizedTrial<>(
+        this.name,
+        this.control,
+        this.candidate,
+        this.executorService,
+        this.returnChoice,
+        this.doExperimentWhen,
+        this.sameWhen,
+        this.exceptionsSameWhen,
+        this.publisher,
+        this.clock);
+  }
 
   public static <I, O> Experiment<I, O> named(String name) {
     return new Experiment<I, O>(name);

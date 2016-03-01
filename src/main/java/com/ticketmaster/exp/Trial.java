@@ -35,18 +35,18 @@ import static com.ticketmaster.exp.TrialType.CONTROL;
 
 public class Trial<I, O> implements Function<I, O> {
 
-  private final String name;
-  private final Function<I, O> control;
-  private final Function<I, O> candidate;
-  private final ExecutorService executorService;
-  private final Function<Result<O>, Try<O>> returnChoice;
-  private final BooleanSupplier doExperimentWhen;
-  private final Clock clock;
+  protected final String name;
+  protected final Function<I, O> control;
+  protected final Function<I, O> candidate;
+  protected final ExecutorService executorService;
+  protected final Function<Result<O>, Try<O>> returnChoice;
+  protected final BooleanSupplier doExperimentWhen;
+  protected final Clock clock;
 
-  private final BiFunction<O, O, Boolean> sameWhen;
-  private final BiFunction<Exception, Exception, Boolean> exceptionsSameWhen;
+  protected final BiFunction<O, O, Boolean> sameWhen;
+  protected final BiFunction<Exception, Exception, Boolean> exceptionsSameWhen;
 
-  private final Publisher<O> publisher;
+  protected final Publisher<O> publisher;
 
   public Trial(
       String name,
