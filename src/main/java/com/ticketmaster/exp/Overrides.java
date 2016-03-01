@@ -24,7 +24,7 @@ import java.util.function.Function;
 
 public class Overrides<O> {
   private BooleanSupplier doExperimentWhen;
-  private Function<Result<O>, Try<O>> returnChoice;
+  private ReturnChoice returnChoice;
 
   Overrides() {}
 
@@ -32,7 +32,7 @@ public class Overrides<O> {
     return new Overrides<>();
   }
 
-  public Overrides<O> returnChoice(Function<Result<O>, Try<O>> returnChoice) {
+  public Overrides<O> returnChoice(ReturnChoice returnChoice) {
     this.returnChoice = returnChoice;
     return this;
   }
@@ -42,7 +42,7 @@ public class Overrides<O> {
     return this;
   }
 
-  public Optional<Function<Result<O>, Try<O>>> optionalReturnChoice() {
+  public Optional<ReturnChoice> optionalReturnChoice() {
     return Optional.ofNullable(returnChoice);
   }
 

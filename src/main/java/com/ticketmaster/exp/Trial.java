@@ -39,7 +39,7 @@ public class Trial<I, O> implements Function<I, O> {
   private final Function<I, O> control;
   private final Function<I, O> candidate;
   private final ExecutorService executorService;
-  private final Function<Result<O>, Try<O>> returnChoice;
+  private final ReturnChoice returnChoice;
   private final BooleanSupplier doExperimentWhen;
   private final Clock clock;
 
@@ -53,7 +53,7 @@ public class Trial<I, O> implements Function<I, O> {
       Function<I, O> control,
       Function<I, O> candidate,
       ExecutorService executorService,
-      Function<Result<O>, Try<O>> returnChoice,
+      ReturnChoice returnChoice,
       BooleanSupplier doExperimentWhen,
       BiFunction<O, O, Boolean> sameWhen,
       BiFunction<Exception, Exception, Boolean> exceptionsSameWhen,
@@ -103,8 +103,11 @@ public class Trial<I, O> implements Function<I, O> {
 
   final Try<O> perform(I args) {
     Result<O> result = getResult(args);
-    Try<O> oTry = returnChoice.apply(result);
-    return oTry;
+    if (returnChoice.choice() == TrialType.CONTROL) {
+      return result.getControlResult().getTryResult();
+    } else {
+      return result.getCandidateResult().getTryResult();
+    }
   }
 
   final Result<O> getResult(I args) {
@@ -129,8 +132,49 @@ public class Trial<I, O> implements Function<I, O> {
     );
     return result;
   }
-
+  
   Result<O> runCandidateAndControl(I args) {
+    if (returnChoice.async()) {
+        return asyncExperiment(args);
+    } else {
+        return syncExperiment(args);
+    }
+  }
+
+  private Result<O> asyncExperiment(I args) {
+    Callable<TrialResult<O>> callableControl = () -> observe(CONTROL, control, args);
+    Callable<TrialResult<O>> callableCandidate = () -> observe(CANDIDATE, candidate, args);
+
+    Instant timestamp = Instant.now();
+    Future<TrialResult<O>> controlFuture = executorService.submit(callableControl);
+    Future<TrialResult<O>> candidateFuture = executorService.submit(callableCandidate);
+    
+    Future<TrialResult<O>> returnFuture;
+    if (returnChoice.choice() == TrialType.CONTROL) {
+        returnFuture = controlFuture;
+    } else {
+        returnFuture = candidateFuture;
+    }
+    
+    Result<O> result = null;
+    try {
+      result = new Result<>(
+          name,
+          timestamp,
+          returnFuture.get(),
+          returnFuture.get());
+    } catch (InterruptedException|ExecutionException e) {
+      throw new RuntimeException(e);
+    }
+    
+    Callable<Result<O>> callableRunExperiment =
+        () -> runExperimentAndPublishResults(controlFuture, candidateFuture, timestamp);
+    executorService.submit(callableRunExperiment);
+    
+    return result;
+  }
+
+  private Result<O> syncExperiment(I args) {
     Callable<TrialResult<O>> callableControl = () -> observe(CONTROL, control, args);
     Callable<TrialResult<O>> callableCandidate = () -> observe(CANDIDATE, candidate, args);
 
@@ -138,6 +182,13 @@ public class Trial<I, O> implements Function<I, O> {
     Future<TrialResult<O>> controlFuture = executorService.submit(callableControl);
     Future<TrialResult<O>> candidateFuture = executorService.submit(callableCandidate);
 
+    return runExperimentAndPublishResults(controlFuture, candidateFuture, timestamp);
+  }
+  
+  private Result<O> runExperimentAndPublishResults(
+          Future<TrialResult<O>> controlFuture,
+          Future<TrialResult<O>> candidateFuture,
+          Instant timestamp) {
     Result<O> result = null;
     try {
       result = new Result<>(
@@ -148,7 +199,7 @@ public class Trial<I, O> implements Function<I, O> {
     } catch (InterruptedException|ExecutionException e) {
       throw new RuntimeException(e);
     }
-
+    
     MatchType matchType = determineMatch(result);
     publisher.publish(matchType, result);
     return result;

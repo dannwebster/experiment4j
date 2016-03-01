@@ -17,6 +17,7 @@
 package com.ticketmaster.exp;
 
 import com.ticketmaster.exp.publish.MeasurerPublisher;
+import com.ticketmaster.exp.util.AlwaysControlReturnChoice;
 import com.ticketmaster.exp.util.ReturnChoices;
 import com.ticketmaster.exp.util.SameWhens;
 import com.ticketmaster.exp.util.Try;
@@ -38,7 +39,7 @@ public class Experiment<I, O> {
   // one of these will exist PER EXPERIMENT, and will have 2 threads associated with
   // running the trial: one for the candidate, one for the control
   private ExecutorService executorService = Executors.newFixedThreadPool(2);
-  private Function<Result<O>, Try<O>> returnChoice = ReturnChoices.alwaysControl();
+  private ReturnChoice returnChoice = new AlwaysControlReturnChoice();
   private BooleanSupplier doExperimentWhen = always();
   private BiFunction<O, O, Boolean> sameWhen = Objects::equals;
   private BiFunction<Exception, Exception, Boolean> exceptionsSameWhen = SameWhens.classesMatch();
@@ -95,7 +96,7 @@ public class Experiment<I, O> {
     return this;
   }
 
-  public Experiment<I, O> returnChoice(Function<Result<O>, Try<O>> returnChoice) {
+  public Experiment<I, O> returnChoice(ReturnChoice returnChoice) {
     this.returnChoice = returnChoice;
     return this;
   }
