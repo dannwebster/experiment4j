@@ -37,7 +37,7 @@ public class Experiment<I, O> {
   private Function<I, O> candidate;
   // one of these will exist PER EXPERIMENT, and will have 2 threads associated with
   // running the trial: one for the candidate, one for the control
-  private ExecutorService executorService = Executors.newFixedThreadPool(2);
+  private ExecutorService executorService = Executors.newFixedThreadPool(3);
   private Function<Result<O>, Try<O>> returnChoice = ReturnChoices.alwaysControl();
   private BooleanSupplier doExperimentWhen = always();
   private BiFunction<O, O, Boolean> sameWhen = Objects::equals;
